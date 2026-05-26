@@ -415,7 +415,11 @@ determined by the parity of the ID:
   per-field; varint-list fields concatenate elements (each element
   is a zigzag varint (see {{zigzag}}) in delta context, an
   absolute MOQT varint in full context), raw-bytes fields carry
-  opaque content.
+  opaque content. The one exception is the *signed list*
+  `trunSampleCompositionTimeOffsets` (ID 5): its elements are
+  zigzag varints (see {{zigzag}}) in BOTH full and delta context,
+  because composition time offsets are signed in `trun` version 1
+  (see {{moof-fields}}).
 
 Field IDs MAY appear in any order; receivers MUST tolerate any
 ordering. Encoders SHOULD emit IDs in ascending order to produce
@@ -456,7 +460,11 @@ LOCMAF uses zigzag varints wherever a signed delta against the
 in-group reference is written, namely in scalar even-ID fields
 (see above) and per-element in varint-list odd-ID fields. Absolute
 values in `LocmafFullHeader` are encoded as plain unsigned MOQT
-varints, not zigzag.
+varints, not zigzag — with one exception: the signed list
+`trunSampleCompositionTimeOffsets` (ID 5) carries zigzag varints
+even in a full chunk, because composition time offsets are signed
+in `trun` version 1 (the common CMAF case: B-frames make the
+composition/decode-time relation non-monotonic).
 
 ## Full vs delta dispatch {#dispatch}
 
@@ -484,40 +492,59 @@ Field IDs are organised in blocks by source box:
 
 | Range       | Block                                |
 |-------------|--------------------------------------|
-| 1–16        | moof fields                          |
+| 1–16        | fields from `moof` child boxes       |
 | 18, 20, 22, 24 | prft fields                       |
 | 23          | styp field                           |
 | 25          | emsg list                            |
 | 27          | delta deletion marker                |
-| 29+         | reserved for future extension        |
 
-## moof fields {#moof-fields}
+## Fields from moof child boxes {#moof-fields}
 
-Fields whose source is the `moof` (and its enclosed `traf`):
+Fields drawn from boxes inside `moof.traf` (i.e. from `trun`,
+`tfhd`, `tfdt`, or `senc`). The symbol prefix names the containing
+box, and the field IDs are the same across both Full and Delta
+chunks.
 
-| ID | Symbol                             | Source ISO BMFF field                            | Kind                |
-|----|------------------------------------|--------------------------------------------------|---------------------|
-|  1 | `moofSampleSizes`                  | `trun.samples[i].sample_size`                    | varint list         |
-|  2 | `moofSampleDescriptionIndex`       | `tfhd.sample_description_index`                  | scalar              |
-|  3 | `moofSampleDurations`              | `trun.samples[i].sample_duration`                | varint list         |
-|  4 | `moofDefaultSampleDuration`        | `tfhd.default_sample_duration`                   | scalar              |
-|  5 | `moofSampleCompositionTimeOffsets` | `trun.samples[i].sample_composition_time_offset` | signed varint list  |
-|  6 | `moofDefaultSampleSize`            | `tfhd.default_sample_size`                       | scalar              |
-|  7 | `moofSampleFlags`                  | `trun.samples[i].sample_flags`                   | varint list (packed; see {{sample-flags}}) |
-|  8 | `moofDefaultSampleFlags`           | `tfhd.default_sample_flags`                      | scalar (packed; see {{sample-flags}}) |
-|  9 | `moofInitializationVector`         | `senc.samples[i].InitializationVector`           | raw bytes (odd, length-prefixed) |
-| 10 | `moofBaseMediaDecodeTime`          | `tfdt.base_media_decode_time`                    | scalar              |
-| 11 | `moofSubsampleCount`               | `senc.samples[i].subsample_count`                | varint list         |
-| 12 | `moofFirstSampleFlags`             | `trun.first_sample_flags`                        | scalar (packed; see {{sample-flags}}) |
-| 13 | `moofBytesOfClearData`             | `senc.samples[i].subsamples[j].BytesOfClearData` | varint list         |
-| 14 | `moofSampleCount`                  | `trun.sample_count`                              | scalar              |
-| 15 | `moofBytesOfProtectedData`         | `senc.samples[i].subsamples[j].BytesOfProtectedData` | varint list     |
-| 16 | `moofPerSampleIVSize`              | `senc.per_sample_iv_size`                        | scalar              |
+| ID | Symbol                             | Kind        |
+|----|------------------------------------|-------------|
+|  1 | `trunSampleSizes`                  | list        |
+|  2 | `tfhdSampleDescriptionIndex`       | scalar      |
+|  3 | `trunSampleDurations`              | list        |
+|  4 | `tfhdDefaultSampleDuration`        | scalar      |
+|  5 | `trunSampleCompositionTimeOffsets` | signed list ‡ |
+|  6 | `tfhdDefaultSampleSize`            | scalar      |
+|  7 | `trunSampleFlags`                  | list †      |
+|  8 | `tfhdDefaultSampleFlags`           | scalar †    |
+|  9 | `sencInitializationVector`         | raw bytes   |
+| 10 | `tfdtBaseMediaDecodeTime`          | scalar      |
+| 11 | `sencSubsampleCount`               | list        |
+| 12 | `trunFirstSampleFlags`             | scalar †    |
+| 13 | `sencBytesOfClearData`             | list        |
+| 14 | `trunSampleCount`                  | scalar      |
+| 15 | `sencBytesOfProtectedData`         | list        |
+| 16 | `sencPerSampleIVSize`              | scalar      |
+
+† Sample-flag fields (IDs 7, 8, 12) carry the 5-bit packed encoding
+defined in {{sample-flags}}.
+
+‡ The *signed list* (ID 5) carries zigzag varints (see {{zigzag}})
+per element in BOTH full and delta chunks, because composition time
+offsets are signed in `trun` version 1. This is the sole odd-ID
+list whose full-chunk elements are not plain unsigned varints.
+
+The remaining name components map field-for-field onto the source
+box (e.g. `tfhdDefaultSampleDuration` ↔ `tfhd.default_sample_duration`,
+`trunFirstSampleFlags` ↔ `trun.first_sample_flags`). Indexing rules:
+per-sample lists (IDs 1, 3, 5, 7, 11) carry the `samples[i].*`
+values from their box; the per-subsample lists (IDs 13, 15) carry
+`senc.samples[i].subsamples[j].*` flattened in chunk order; and
+`sencInitializationVector` (9) is the concatenation of per-sample
+IVs, each `sencPerSampleIVSize` bytes long.
 
 The ID space is structurally aligned with the parity rule: every
 default/scalar field has an even ID and every per-sample list field
-has an odd ID, with `moofInitializationVector` (9) as the documented
-exception (raw bytes rather than a varint list).
+has an odd ID, with `sencInitializationVector` (9) as the documented
+exception (raw bytes rather than a list).
 
 ## prft fields {#prft-fields}
 
@@ -648,7 +675,7 @@ present; there is no delta encoding for `emsg`.
 
 | ID | Symbol                       | Kind                              | Notes                                            |
 |----|------------------------------|-----------------------------------|--------------------------------------------------|
-| 27 | `moofDeltaDeletedLocmafIDs`  | varint list (odd, length-prefixed) | List of field IDs removed since the previous moof in the same group. Used only in `LocmafDeltaHeader`. |
+| 27 | `deltaDeletedLocmafIDs`  | list (odd, length-prefixed) | List of field IDs removed since the previous moof in the same group. Used only in `LocmafDeltaHeader`. |
 
 # Full LOCMAF Chunk Encoding {#full-chunk}
 
@@ -658,7 +685,7 @@ chunk's head: at most one optional `styp`, at most one optional
 source, and the `moof` itself. The `mdat` payload follows the
 property block, unchanged.
 
-## Emission rules for moof fields
+## Emission rules for moof child-box fields
 
 The encoder walks the source `moof` (paired with the catalog's
 `moov`) and emits each moof field only when the value cannot be
@@ -666,35 +693,58 @@ derived from the `moov`'s `trex` defaults:
 
 | Field                              | Emitted when                                                                              |
 |------------------------------------|-------------------------------------------------------------------------------------------|
-| `moofSampleDescriptionIndex`       | `tfhd.HasSampleDescriptionIndex()` AND value ≠ `trex.default_sample_description_index`    |
-| `moofDefaultSampleDuration`        | `tfhd.HasDefaultSampleDuration()` AND value ≠ `trex.default_sample_duration`              |
-| `moofDefaultSampleSize`            | `tfhd.HasDefaultSampleSize()` AND value ≠ `trex.default_sample_size` AND `sample_count > 1` |
-| `moofDefaultSampleFlags`           | `tfhd.HasDefaultSampleFlags()` AND value ≠ `trex.default_sample_flags`                    |
-| `moofBaseMediaDecodeTime`          | always                                                                                    |
-| `moofSampleCount`                  | always                                                                                    |
-| `moofFirstSampleFlags`             | `trun.HasFirstSampleFlags()`                                                              |
-| `moofSampleSizes`                  | `trun.HasSampleSize()` AND `sample_count > 1`                                             |
-| `moofSampleDurations`              | `trun.HasSampleDuration()`                                                                |
-| `moofSampleCompositionTimeOffsets` | `trun.HasSampleCompositionTimeOffset()`                                                   |
-| `moofSampleFlags`                  | `trun.HasSampleFlags()`                                                                   |
-| `moofPerSampleIVSize`              | `senc` present AND `per_sample_iv_size ≠ tenc.default_per_sample_iv_size`                 |
-| `moofInitializationVector`         | `senc` present AND `per_sample_iv_size > 0` AND samples carry IVs (see also {{cenc-iv}})  |
-| `moofSubsampleCount`               | `senc` present AND samples carry subsample maps                                           |
-| `moofBytesOfClearData`             | same as `moofSubsampleCount`                                                              |
-| `moofBytesOfProtectedData`         | same as `moofSubsampleCount`                                                              |
+| `tfhdSampleDescriptionIndex`       | `tfhd.HasSampleDescriptionIndex()` AND value ≠ `trex.default_sample_description_index`    |
+| `tfhdDefaultSampleDuration`        | `tfhd.HasDefaultSampleDuration()` AND value ≠ `trex.default_sample_duration`              |
+| `tfhdDefaultSampleSize`            | all samples in the chunk have the same size AND that size ≠ `trex.default_sample_size` AND `sample_count > 1` |
+| `tfhdDefaultSampleFlags`           | `tfhd.HasDefaultSampleFlags()` AND value ≠ `trex.default_sample_flags`                    |
+| `tfdtBaseMediaDecodeTime`          | always                                                                                    |
+| `trunSampleCount`                  | always                                                                                    |
+| `trunFirstSampleFlags`             | `trun.HasFirstSampleFlags()`                                                              |
+| `trunSampleSizes`                  | `trun.HasSampleSize()` AND sample sizes are not all equal AND `sample_count > 1`; the list carries `sample_count − 1` values (first n−1 in chunk order) |
+| `trunSampleDurations`              | `trun.HasSampleDuration()`                                                                |
+| `trunSampleCompositionTimeOffsets` | `trun.HasSampleCompositionTimeOffset()`                                                   |
+| `trunSampleFlags`                  | `trun.HasSampleFlags()`                                                                   |
+| `sencPerSampleIVSize`              | `senc` present AND `per_sample_iv_size ≠ tenc.default_per_sample_iv_size`                 |
+| `sencInitializationVector`         | `senc` present AND `per_sample_iv_size > 0` AND samples carry IVs (see also {{cenc-iv}})  |
+| `sencSubsampleCount`               | `senc` present AND samples carry subsample maps                                           |
+| `sencBytesOfClearData`             | same as `sencSubsampleCount`                                                              |
+| `sencBytesOfProtectedData`         | same as `sencSubsampleCount`                                                              |
 
-In strict `cmf2` mode (see {{scope}}), `moofDefaultSampleDuration`,
-`moofDefaultSampleSize`, `moofDefaultSampleFlags`, and
-`moofSampleDescriptionIndex` are emitted unconditionally on the
+In strict `cmf2` mode (see {{scope}}), `tfhdDefaultSampleDuration`,
+`tfhdDefaultSampleSize`, `tfhdDefaultSampleFlags`, and
+`tfhdSampleDescriptionIndex` are emitted unconditionally on the
 full chunk, even when they match `trex`.
 
-When `sample_count == 1`, both `moofSampleSizes` (ID 6) and
-`moofDefaultSampleSize` (ID 2) MUST be omitted; the single
-sample's size is derivable from the MOQT object's mdat-payload
-length (object length minus the framing already consumed), so
-neither field carries new information. The receiver MUST use this
-derivation and MUST NOT consult `trex.default_sample_size` for
-single-sample chunks.
+### Sample-size derivation {#sample-size-derivation}
+
+Let `n = trunSampleCount` and let `P` be the chunk's mdat-payload
+length (MOQT object length minus the framing already consumed).
+The receiver MUST derive sample sizes as follows:
+
+- If `trunSampleSizes` (ID 1) is present, it carries exactly `n − 1`
+  values. `sample_size[i] = listed[i]` for `i` in `[0, n−1)`, and
+  `sample_size[n−1] = P − sum(listed)`. The receiver MUST NOT consult
+  `tfhdDefaultSampleSize`, `trex.default_sample_size`, or any other
+  source for sample sizes in this chunk.
+- Else if `tfhdDefaultSampleSize` (ID 6) is present, all `n` samples
+  have that size.
+- Else if `trex.default_sample_size` is non-zero, all `n` samples
+  have that size.
+- Else, when `n == 1`, the lone sample's size is `P`. When `n > 1`
+  and no size information is available the chunk is malformed and
+  the receiver MUST reject it.
+
+Correspondingly, when `sample_count == 1` both `trunSampleSizes` and
+`tfhdDefaultSampleSize` MUST be omitted — the single sample's size
+is always `P`. When `sample_count > 1` with uniform sizes the
+encoder MUST emit `tfhdDefaultSampleSize` (subject to the
+`trex.default_sample_size` equality rule) and MUST NOT emit
+`trunSampleSizes`; when sizes vary the encoder MUST emit
+`trunSampleSizes` with exactly `n − 1` entries and MUST NOT emit
+`tfhdDefaultSampleSize`. Omitting the last sample size shaves one
+varint per chunk; using the default for uniform-size tracks (common
+for fixed-bitrate audio, e.g., AC-3) collapses `n − 1` varints to
+one.
 
 ## Emission rules for prft / styp / emsg fields
 
@@ -725,7 +775,7 @@ Each emitted field's value is interpreted relative to its kind:
 | Kind                  | Wire encoding                                                                                  | Reconstruction                                |
 |-----------------------|------------------------------------------------------------------------------------------------|-----------------------------------------------|
 | scalar (even ID)      | zigzag varint (see {{zigzag}}) of `current_value − previous_value`                             | `current = previous + delta`                  |
-| varint list (odd ID)  | zigzag varint (see {{zigzag}}) per element, concatenated; element delta = `current[i] − previous[i]` | element-wise sum with the previous list  |
+| list (odd ID)  | zigzag varint (see {{zigzag}}) per element, concatenated; element delta = `current[i] − previous[i]` | element-wise sum with the previous list  |
 | raw bytes (odd ID)    | full new bytes verbatim                                                                        | overwrite previous bytes                      |
 
 The "previous value" for each field is the effective value used in
@@ -735,13 +785,17 @@ starting from that re-anchor).
 
 ### List length changes {#list-length-changes}
 
-The length of a per-sample list field (IDs 1, 3, 5, 7, 11) in the
-current chunk is `moofSampleCount`, which is always emitted (see
-{{full-chunk}}). The per-subsample list fields (IDs 13, 15) have
-total length equal to `sum(moofSubsampleCount[i])` over the new
-sample count. Consequently the receiver knows
-`len(current)` for every list field before parsing the field's
-payload bytes.
+The length of a per-sample list field in the current chunk is
+`trunSampleCount`, which is always emitted (see {{full-chunk}}).
+This covers `trunSampleDurations` (ID 3),
+`trunSampleCompositionTimeOffsets` (ID 5), `trunSampleFlags` (ID 7),
+and `sencSubsampleCount` (ID 11). `trunSampleSizes` (ID 1) is the
+documented exception: it carries `trunSampleCount − 1` entries (the
+last sample size is derived from the mdat-payload length per
+{{sample-size-derivation}}). The per-subsample list fields (IDs 13,
+15) have total length equal to `sum(sencSubsampleCount[i])` over the
+new sample count. Consequently the receiver knows `len(current)` for
+every list field before parsing the field's payload bytes.
 
 When `len(current) ≠ len(previous)` the delta rule extends as
 follows:
@@ -758,19 +812,19 @@ follows:
   shorter than previous): no bytes are emitted for these
   positions. The receiver simply truncates to `len(current)`.
 
-The deletion list `moofDeltaDeletedLocmafIDs` (ID 27) is an
+The deletion list `deltaDeletedLocmafIDs` (ID 27) is an
 exception: it carries the set of field IDs deleted in *this*
 chunk, encoded as plain unsigned varints (not zigzag, not deltas
 against a "previous deletion list"). Its length is determined by
 the field's byte-length prefix; the receiver reads unsigned
 varints until the prefix is exhausted.
 
-## `moofBaseMediaDecodeTime` is normally derived
+## `tfdtBaseMediaDecodeTime` is normally derived
 
 The receiver derives the new BMDT as
 `previous_bmdt + sum(previous_sample_durations)`. When the source
 BMDT diverges from this derivation (audio pre-roll, splicing,
-stream re-anchor), the encoder MUST emit `moofBaseMediaDecodeTime`
+stream re-anchor), the encoder MUST emit `tfdtBaseMediaDecodeTime`
 (ID 10) in the delta chunk as an absolute unsigned varint (i.e.
 the same encoding as in a full chunk, not a zigzag delta). The
 receiver checks for the field first and uses its value when
@@ -786,20 +840,21 @@ to signal that a field which was present in the previous chunk is
 genuinely gone in the current one. The deletion marker provides
 that signal.
 
-The motivating case is `moofFirstSampleFlags` (ID 12). A SAP-1
+The motivating case is `trunFirstSampleFlags` (ID 12). A SAP-1
 random-access chunk emits this field to flag its first sample as
 a sync sample; the immediately following non-sync chunk must say
 "this override no longer applies" so the receiver falls back to
 `trex.default_sample_flags` for the first sample.
 
-The `moofDeltaDeletedLocmafIDs` field (ID 27) carries a varint
+The `deltaDeletedLocmafIDs` field (ID 27) carries a varint
 list of field IDs that were present in the previous chunk but are
 no longer present. The decoder applies deletions before applying
 deltas. Example: when the first chunk of a group carried
-`moofFirstSampleFlags` (a SAP-1 sync sample) and the second chunk
-does not, the second chunk emits ID 27 with value `[12]`. The
-typical cost is two bytes — one length-prefixed list with one
-field ID — versus the tens to hundreds of bytes of re-anchoring.
+`trunFirstSampleFlags` (a SAP-1 sync sample) and the second chunk
+does not, the second chunk emits ID 27 with a one-element list
+containing ID 12. The typical cost is two bytes — one
+length-prefixed list with one field ID — versus the tens to
+hundreds of bytes of re-anchoring.
 
 ## Empty delta
 
@@ -835,8 +890,8 @@ The 5-bit packed value (LSB first):
 | 1–2  | `sample_depends_on`         |
 | 3–4  | `sample_is_depended_on`     |
 
-`moofSampleFlags` (ID 7) carries this 5-bit value (range 0–31) per
-sample. `moofDefaultSampleFlags` (ID 8) and `moofFirstSampleFlags`
+`trunSampleFlags` (ID 7) carries this 5-bit value (range 0–31) per
+sample. `tfhdDefaultSampleFlags` (ID 8) and `trunFirstSampleFlags`
 (ID 12) carry the same 5-bit transport.
 
 In a full chunk the field is an unsigned varint scalar (or list).
@@ -978,7 +1033,7 @@ the four-character `scheme_type` in the surrounding `schm` box:
 - `cenc`: AES-128-CTR full-sample encryption. Per-sample
   initialization vectors are big-endian counters advanced by the
   per-sample encrypted-byte total ({{CENC}}, §10.1); LOCMAF carries
-  these IVs via `moofInitializationVector` and permits omission
+  these IVs via `sencInitializationVector` and permits omission
   under the counter rule of {{cenc-iv}}.
 - `cbcs`: AES-128-CBC subsample pattern encryption with a constant
   initialization vector taken from `tenc.default_constant_iv`
@@ -1016,25 +1071,25 @@ that the per-sample initialization vector is a big-endian counter
 advanced sample-by-sample by exactly
 `ceil(total_encrypted_bytes_in_sample / 16)` AES blocks. Both
 endpoints already see the per-sample encrypted-byte totals
-(`moofBytesOfProtectedData`) and the IV anchor (carried on the
+(`sencBytesOfProtectedData`) and the IV anchor (carried on the
 first full chunk of the track), so the receiver can derive every
 subsequent per-sample IV deterministically.
 
-LOCMAF v0.2 permits encoders to omit `moofInitializationVector` (ID
+LOCMAF v0.2 permits encoders to omit `sencInitializationVector` (ID
 9) when the source follows this counter rule, and requires
 receivers to support derivation:
 
-- An encoder MAY omit `moofInitializationVector` on full and delta
+- An encoder MAY omit `sencInitializationVector` on full and delta
   chunks when every per-sample IV in the chunk matches the value
   derived by the CENC counter rule from the previous chunk's IVs
-  and `moofBytesOfProtectedData` totals.
+  and `sencBytesOfProtectedData` totals.
 - A receiver MUST be able to derive per-sample IVs from the counter
-  rule. When `moofInitializationVector` is absent and the scheme is
+  rule. When `sencInitializationVector` is absent and the scheme is
   `cenc`, the receiver advances the running IV counter and uses the
   derived value.
 - When the source diverges from the counter rule (random IVs,
   mid-track counter restart, or any non-conformant strategy), the
-  encoder MUST emit `moofInitializationVector` absolutely on every
+  encoder MUST emit `sencInitializationVector` absolutely on every
   affected sample.
 
 The `cbcs` scheme uses a constant IV from `tenc.default_constant_iv`
@@ -1052,7 +1107,7 @@ via `emsg` boxes attached to its chunks.
 
 LOCMAF supports event-only tracks without any wire-format
 extension. A `LocmafFullHeader` for an event-only group sets
-`moofSampleCount = 0`, carries `moofBaseMediaDecodeTime` and
+`trunSampleCount = 0`, carries `tfdtBaseMediaDecodeTime` and
 `emsgList`, and is followed by an empty `mdat` payload. Subsequent
 chunks in the same group use `LocmafDeltaHeader` with the
 absolute-BMDT override pattern (see {{delta-chunk}}) because the
@@ -1061,7 +1116,7 @@ zero sample-count produces no derivation increment.
 Two encoder strategies are valid:
 
 1. **Absolute BMDT per chunk.** The delta chunk emits
-   `moofBaseMediaDecodeTime` explicitly. Costs an extra varint per
+   `tfdtBaseMediaDecodeTime` explicitly. Costs an extra varint per
    chunk; recommended for sparse event-only tracks.
 2. **Synthetic per-chunk sample.** The encoder sets
    `sample_count = 1` with a `default_sample_duration` equal to
@@ -1145,9 +1200,9 @@ ISO BMFF {{ISOBMFF}} boxes with inconsistent field lengths.
 Specifically:
 
 - The receiver MUST bound the size of any reconstructed per-sample
-  list against `moofSampleCount`.
+  list against `trunSampleCount`.
 - The receiver MUST verify that the sum of reconstructed
-  `moofBytesOfClearData` and `moofBytesOfProtectedData` for each
+  `sencBytesOfClearData` and `sencBytesOfProtectedData` for each
   sample equals the sample's size.
 - The receiver MUST verify that the CENC-IV counter, if derived,
   does not advance past the per-sample-IV-size range.
