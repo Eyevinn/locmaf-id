@@ -12,17 +12,16 @@
 QUIC), a compact wire format for streaming low-latency CMAF media
 over the MoQ Transport protocol (MOQT) with per-object overhead
 comparable to the Low Overhead Container (LOC). LOCMAF carries the
-CMAF chunk head —  styp  (segment type),  prft  (producer
-reference time), any number of  emsg  (event message) boxes, and
-the  moof  (movie fragment) — as a small set of tagged fields
-inside one of
-two LOCMAF object kinds, while leaving the sample
-data ( mdat ) untouched. The first object of each MOQT group carries
-a full reference; subsequent objects in the same group carry only
-the differences. The receiver reconstructs CMAF chunks that are
-semantically equivalent to the sender input, including
-encryption metadata required by CMAF DRM (Common Encryption)
-pipelines. 
+CMAF chunk head metadata from a single  moof  (movie fragment) —
+as a small set of tagged fields inside one of two LOCMAF object
+kinds, while leaving the sample data ( mdat ) untouched. In
+addition, it can carry the optional  styp  (segment type),  prft 
+(producer reference time), any number of  emsg  (event message)
+boxes. The first object of each MOQT group carries a full
+reference; subsequent objects in the same group carry only the
+differences. The receiver reconstructs CMAF chunks that are
+semantically equivalent to the sender input, including encryption
+metadata required by CMAF DRM (Common Encryption) pipelines. 
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="moq" name="keyword">
@@ -1067,7 +1066,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Einarsson &amp; Björs</td>
-<td class="center">Expires 3 December 2026</td>
+<td class="center">Expires 4 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1080,12 +1079,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-einarsson-moq-locmaf-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-01" class="published">1 June 2026</time>
+<time datetime="2026-06-02" class="published">2 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-03">3 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-04">4 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1106,17 +1105,16 @@ svg :is([fill="white"], [fill^="#fff"]) {
 QUIC), a compact wire format for streaming low-latency CMAF media
 over the MoQ Transport protocol (MOQT) with per-object overhead
 comparable to the Low Overhead Container (LOC). LOCMAF carries the
-CMAF chunk head — <code>styp</code> (segment type), <code>prft</code> (producer
-reference time), any number of <code>emsg</code> (event message) boxes, and
-the <code>moof</code> (movie fragment) — as a small set of tagged fields
-inside one of
-two LOCMAF object kinds, while leaving the sample
-data (<code>mdat</code>) untouched. The first object of each MOQT group carries
-a full reference; subsequent objects in the same group carry only
-the differences. The receiver reconstructs CMAF chunks that are
-semantically equivalent to the sender input, including
-encryption metadata required by CMAF DRM (Common Encryption)
-pipelines.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+CMAF chunk head metadata from a single <code>moof</code> (movie fragment) —
+as a small set of tagged fields inside one of two LOCMAF object
+kinds, while leaving the sample data (<code>mdat</code>) untouched. In
+addition, it can carry the optional <code>styp</code> (segment type), <code>prft</code>
+(producer reference time), any number of <code>emsg</code> (event message)
+boxes. The first object of each MOQT group carries a full
+reference; subsequent objects in the same group carry only the
+differences. The receiver reconstructs CMAF chunks that are
+semantically equivalent to the sender input, including encryption
+metadata required by CMAF DRM (Common Encryption) pipelines.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1153,7 +1151,7 @@ pipelines.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 3 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 4 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1391,7 +1389,7 @@ pipelines.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
             <p id="section-toc.1-1.18.1"><a href="#section-18" class="auto internal xref">18</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.1">
-                <p id="section-toc.1-1.18.2.1.1"><a href="#section-18.1" class="auto internal xref">18.1</a>.  <a href="#name-cmsf-catalog-properties" class="internal xref">CMSF Catalog Properties</a></p>
+                <p id="section-toc.1-1.18.2.1.1"><a href="#section-18.1" class="auto internal xref">18.1</a>.  <a href="#name-catalog-packaging-value-and" class="internal xref">Catalog packaging value and <code>locmafVersion</code></a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.2">
                 <p id="section-toc.1-1.18.2.2.1"><a href="#section-18.2" class="auto internal xref">18.2</a>.  <a href="#name-locmaf-top-level-header-ids" class="internal xref">LOCMAF Top-Level Header IDs</a></p>
@@ -1424,15 +1422,17 @@ pipelines.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">CMAF <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> chunk headers are typically over 100 bytes, while the
-codec frames they describe may be only a few hundred bytes at low
-latency. Streaming CMAF directly over MoQ Transport <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>
+<p id="section-1-1">CMAF <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> chunk headers have a size starting at 100 bytes, while
+the codec frames they describe may be only a few hundred bytes at
+low latency and low-bitrate such as audio tracks.
+Streaming CMAF directly over MoQ Transport <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>
 therefore incurs a per-object overhead that the Low Overhead
-Container (LOC) <span>[<a href="#LOC" class="cite xref">LOC</a>]</span> avoids by carrying raw codec frames. LOC,
-however, cannot transport the per-sample CENC <span>[<a href="#CENC" class="cite xref">CENC</a>]</span> metadata
-needed for browser EME / CDM decryption of DRM-protected live
-streams, nor the <code>prft</code> (Producer Reference Time) and <code>emsg</code> (DASH
-Event Message) boxes that CMAF carries alongside the <code>moof</code>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+Container (LOC) <span>[<a href="#LOC" class="cite xref">LOC</a>]</span> avoids by carrying raw codec frames with
+a minimal set of metadata. LOC, however, cannot transport the
+per-sample CENC <span>[<a href="#CENC" class="cite xref">CENC</a>]</span> metadata needed for browser EME / CDM decryption
+of DRM-protected live streams, nor the <code>prft</code> (Producer Reference Time)
+and <code>emsg</code> (DASH Event Message) boxes that CMAF may carry alongside
+the <code>moof</code>.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">LOCMAF closes this gap. It exploits the observation that consecutive
 CMAF chunk heads within a single CMAF segment are nearly identical:
 the first chunk of a MOQT group is sent in full, subsequent chunks
@@ -1448,13 +1448,18 @@ receiver reconstruction algorithm, and the DRM box round-trip.<a href="#section-
         <h3 id="name-relationship-to-prior-work">
 <a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationship-to-prior-work" class="section-name selfRef">Relationship to prior work</a>
         </h3>
-<p id="section-1.1-1">The Compressed MP4 draft <span>[<a href="#COMPRESSED-MP4" class="cite xref">COMPRESSED-MP4</a>]</span> addresses the general
-problem of compressing ISO BMFF box payloads, including CMAF
-initialisation segments. LOCMAF takes a complementary, narrower
-approach:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-1">A reason that CMAF headers are big is that they have a history
+in the multi-sample MP4 file format. Furthermore, each individual
+box starts with an 8-byte header using a fixed 4-byte size
+and a 4-byte identifier. This is in contrast to MOQT and QUIC
+that use varint.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">A general MP4/CMAF box can be compressed by reducing the header
+size by using varints and shorter ids as proposed in the
+Compressed MP4 draft <span>[<a href="#COMPRESSED-MP4" class="cite xref">COMPRESSED-MP4</a>]</span>. LOCMAF takes
+a more specific approach:<a href="#section-1.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-2.1">
-            <p id="section-1.1-2.1.1">LOCMAF does <strong>not</strong> compress the CMAF Header
+<li class="normal" id="section-1.1-3.1">
+            <p id="section-1.1-3.1.1">LOCMAF does <strong>not</strong> compress the CMAF Header
 (initialisation segment). The CMAF Header is carried verbatim in
 the catalog (see <a href="#cmaf-header" class="auto internal xref">Section 5</a>). Init compression is a
 one-time-per-track cost; LOCMAF's wire-byte target is the
@@ -1463,18 +1468,16 @@ the CMAF Header verbatim has a second, deployment-driven
 benefit: a <code>locmaf</code> packaging track uses the <strong>same MSF
 initialisation-data mechanism</strong> as a <code>cmaf</code> packaging track,
 and when both wrap the same source they <span class="bcp14">MAY</span> refer to the same
-init entry (see <a href="#cmaf-header" class="auto internal xref">Section 5</a>). Publishers can therefore
+init entry (see <a href="#cmaf-header" class="auto internal xref">Section 5</a>), as being proposed for
+the next draft of <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>. Publishers can therefore
 introduce LOCMAF as a more efficient wire format for clients
 that support it without duplicating the initialisation bytes
 for legacy CMAF clients — both audiences consume the same init
 from the same catalog entry, and the publisher only adds the
-LOCMAF-encoded media track alongside the CMAF one. Where
-generic init compression is desired, <span>[<a href="#COMPRESSED-MP4" class="cite xref">COMPRESSED-MP4</a>]</span> or a
-generic transport-layer compression layer can be applied
-independently of LOCMAF.<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+LOCMAF-encoded media track alongside the CMAF one.<a href="#section-1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-2.2">
-            <p id="section-1.1-2.2.1">LOCMAF's goal for the per-chunk path is <strong>functionally
+          <li class="normal" id="section-1.1-3.2">
+            <p id="section-1.1-3.2.1">LOCMAF's goal for the per-chunk path is <strong>functionally
 equivalent reconstruction</strong>, not byte-exact reconstruction. The
 reconstructed CMAF chunk <span class="bcp14">MUST</span> carry the same samples, sample
 metadata, and CENC metadata as the source, but byte-level
@@ -1484,11 +1487,12 @@ inside the reconstructed <code>traf</code> is implementation-defined, the
 <code>trun.tr_flags</code> packing is canonicalised, and <code>tfhd</code> defaults
 that match <code>trex</code> are silently re-supplied on reconstruction. A
 receiver <span class="bcp14">MUST NOT</span> rely on byte-level identity with the source
-CMAF stream.<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+CMAF stream. Given that the typical target is to feed an MSE/EME
+player instance, this is not deemed a disadvantage.<a href="#section-1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.1-3">A reference implementation is available <span>[<a href="#MOQLIVEMOCK" class="cite xref">MOQLIVEMOCK</a>]</span>. Worked
-examples and diagrams are published at <span>[<a href="#LOCMAF-SITE" class="cite xref">LOCMAF-SITE</a>]</span>.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.1-4">A reference implementation is available <span>[<a href="#MOQLIVEMOCK" class="cite xref">MOQLIVEMOCK</a>]</span>. Worked
+examples and diagrams are published at <span>[<a href="#LOCMAF-SITE" class="cite xref">LOCMAF-SITE</a>]</span>.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1616,25 +1620,55 @@ has a complete reference (see <a href="#dispatch" class="auto internal xref">Sec
 specification.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-4-3"><code>locmafVersion</code> is present only when <code>packaging == "locmaf"</code> and is
-omitted otherwise. Receivers <span class="bcp14">MUST</span> compare against their highest
-supported version and <span class="bcp14">SHOULD</span> refuse the track when the encoder
-advertises a version they do not implement.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">The CMAF Header for a LOCMAF track is carried by the same MSF
+<p id="section-4-3">This document extends the allowed <code>packaging</code> values defined in
+<span>[<a href="#MSF" class="cite xref">MSF</a>]</span> to include one new entry, in the same manner that <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>
+adds <code>"cmaf"</code>:<a href="#section-4-3" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+        <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Name</th>
+            <th class="text-left" rowspan="1" colspan="1">Value</th>
+            <th class="text-left" rowspan="1" colspan="1">Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">LOCMAF</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>locmaf</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">this document</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-4-5"><code>locmafVersion</code> is a track-level catalog field added by this
+document, analogous to the track-level fields <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> adds for
+CMAF. It is present only when <code>packaging == "locmaf"</code> and is
+omitted otherwise. Its value is a string identifying the LOCMAF
+wire-format version; <code>"0.2"</code> denotes the format specified here.
+Receivers <span class="bcp14">MUST</span> compare it against their highest supported version
+and <span class="bcp14">SHOULD</span> refuse the track when the encoder advertises a version
+they do not implement. The set of valid <code>locmafVersion</code> values is
+governed by this document and its successors, not by an IANA
+registry (see <a href="#iana" class="auto internal xref">Section 18</a>).<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">The CMAF Header for a LOCMAF track is carried by the same MSF
 <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> mechanism that carries the CMAF Header for a plain <code>cmaf</code>
 packaging track. LOCMAF does not define its own init-carriage
 shape, nor add <code>locmaf</code>-specific catalog fields beyond
 <code>locmafVersion</code>. Whatever mechanism MSF specifies for <code>cmaf</code>
 init data — inline <code>initData</code> today, or whichever indirection
 form MSF adopts (e.g. a root-level init-data list referenced from
-the track entry) — applies unchanged to <code>locmaf</code> tracks.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">A consequence: when a <code>cmaf</code> packaging track and a <code>locmaf</code>
+the track entry) — applies unchanged to <code>locmaf</code> tracks.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">A consequence: when a <code>cmaf</code> packaging track and a <code>locmaf</code>
 packaging track wrap the same source, they <span class="bcp14">MAY</span> refer to the same
 MSF init-data entry. The wrapped media is identical at the
 sample level and the CMAF Header bytes are identical at the byte
 level (see <a href="#cmaf-header" class="auto internal xref">Section 5</a>); only the per-chunk wire encoding
-differs.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">[TODO: IANA registry pointer for <code>locmafVersion</code>.]<a href="#section-4-6" class="pilcrow">¶</a></p>
+differs.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">It should be noted that <code>cmaf</code> and <code>locmaf</code> track may be mixed,
+e.g. video tracks using <code>cmaf</code> packaging while audio uses <code>locmaf</code>`
+dito.<a href="#section-4-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="cmaf-header">
@@ -1703,10 +1737,10 @@ one <code>trak</code> box. Multi-track ISO BMFF files <span class="bcp14">MUST</
 before LOCMAF encoding.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.1-2.2">
-            <p id="section-6.1-2.2.1"><strong>No KID change within a CMAF chunk.</strong> Key-identifier
+            <p id="section-6.1-2.2.1"><strong>No key ID (KID) change within a CMAF chunk.</strong> Key-identifier
 transitions <span class="bcp14">MUST</span> align with fragment (and therefore chunk)
-boundaries. This removes the need for <code>sgpd</code> / <code>sbgp</code> in the
-wire format.<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+boundaries. This removes the need for <code>sgpd</code> / <code>sbgp</code> boxes
+in the wire format.<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.1-2.3">
             <p id="section-6.1-2.3.1"><strong>Restricted <code>sample_flags</code> populations.</strong> Per-sample, default,
@@ -1748,7 +1782,7 @@ stream maximises what can be omitted from each chunk header.<a href="#section-6.
         </ol>
 </section>
 </div>
-<div id="tfdtbasemediadecodetime-contiguity">
+<div id="bmdt-contiguity">
 <section id="section-6.3">
         <h3 id="name-tfdtbasemediadecodetime-con">
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-tfdtbasemediadecodetime-con" class="section-name selfRef"><code>tfdt.baseMediaDecodeTime</code> contiguity</a>
@@ -1771,7 +1805,7 @@ flags, sample-description index) in the full chunk header even
 when they match <code>trex</code>. This costs ~6 B per group but produces
 reconstructed CMAF chunks that satisfy CMAF §7.7.3 fragment self-
 decodability (each chunk is a single-chunk fragment in the LOCMAF
-mapping). Strict <code>cmf2</code> mode is signalled out-of-band; it does not
+mapping). It does not need to be signaled since it does not
 affect wire compatibility between encoders and decoders.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1788,8 +1822,8 @@ affect wire compatibility between encoders and decoders.<a href="#section-6.4-1"
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-top-level-header-ids" class="section-name selfRef">Top-level header IDs</a>
         </h3>
 <p id="section-7.1-1">LOCMAF defines two top-level header IDs:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-1">
-          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<table class="center" id="table-2">
+          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -1832,7 +1866,7 @@ unassigned ID, allocated via the IANA registry defined in
 +-----------------------------+
 | header_id        (varint)   |   top-level object kind
 +-----------------------------+
-| properties_length (varint)  |   length of the properties block in bytes
+| properties_length (varint)  |   byte length of the properties block
 +-----------------------------+
 | properties      (variable)  |   sequence of (field_id, value) tuples
 +-----------------------------+
@@ -1899,23 +1933,23 @@ values, and thus the shortest varint forms.<a href="#section-7.4-1" class="pilcr
 zigzag representation <code>z</code> is:<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7.4-3">
 <pre>
-encode:  z = (n &lt;&lt; 1) ^ (n &gt;&gt; 63)              ; arithmetic right shift
-                                                ; equivalently:
-                                                ;   n &gt;= 0:  z = 2 * n
-                                                ;   n &lt;  0:  z = -2 * n - 1
+encode:  z = (n &lt;&lt; 1) ^ (n &gt;&gt; 63)  ; arithmetic right shift
+                                   ; equivalently:
+                                   ;   n &gt;= 0:  z = 2 * n
+                                   ;   n &lt;  0:  z = -2 * n - 1
 
-decode:  n = (z &gt;&gt; 1) ^ -(z &amp; 1)               ; equivalently:
-                                                ;   z even:  n =  z / 2
-                                                ;   z odd:   n = -(z + 1) / 2
+decode:  n = (z &gt;&gt; 1) ^ -(z &amp; 1)   ; equivalently:
+                                   ;   z even:  n =  z / 2
+                                   ;   z odd:   n = -(z + 1) / 2
 </pre><a href="#section-7.4-3" class="pilcrow">¶</a>
 </div>
 <p id="section-7.4-4">The first few mappings: 0↔0, -1↔1, 1↔2, -2↔3, 2↔4, -3↔5, 3↔6, ….<a href="#section-7.4-4" class="pilcrow">¶</a></p>
 <p id="section-7.4-5">The encoded <code>z</code> is then serialised as an unsigned MOQT varint
 (<span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>); decoders read the MOQT varint and apply the decode
 rule above.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
-<p id="section-7.4-6">This is the same zigzag mapping used by, e.g., Protocol Buffers;
-the description is included here for self-containment of the
-LOCMAF wire format.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
+<p id="section-7.4-6">This zigzag mapping is widely used in compact binary
+serialisation formats; the description is included here for
+self-containment of the LOCMAF wire format.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 <p id="section-7.4-7">LOCMAF uses zigzag varints wherever a signed delta against the
 in-group reference is written, namely in scalar even-ID fields
 (see above) and per-element in varint-list odd-ID fields. Absolute
@@ -1968,8 +2002,8 @@ infer "full" from object index 0 or "delta" from object index &gt;
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-field-reference" class="section-name selfRef">Field Reference</a>
       </h2>
 <p id="section-8-1">Field IDs are organised in blocks by source box:<a href="#section-8-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-2">
-        <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<table class="center" id="table-3">
+        <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
           <tr>
             <th class="text-left" rowspan="1" colspan="1">Range</th>
@@ -2008,8 +2042,8 @@ infer "full" from object index 0 or "delta" from object index &gt;
 <code>tfhd</code>, <code>tfdt</code>, or <code>senc</code>). The symbol prefix names the containing
 box, and the field IDs are the same across both Full and Delta
 chunks.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-3">
-          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -2159,8 +2193,8 @@ exception (raw bytes rather than a list).<a href="#section-8.1-6" class="pilcrow
         </h3>
 <p id="section-8.2-1">Fields whose source is a <code>ProducerReferenceTimeBox</code> (<span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span>
 §6.6.8) attached to the same CMAF chunk:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-4">
-          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<table class="center" id="table-5">
+          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -2210,12 +2244,18 @@ exception (raw bytes rather than a list).<a href="#section-8.1-6" class="pilcrow
             </tr>
           </tbody>
         </table>
-<p id="section-8.2-3">A LOCMAF chunk carries <code>prft</code> iff at least one of IDs 18, 20, 22,
-24 is present in its property block. In a delta chunk, the scalar
-fields are zigzag-encoded deltas against the most recent full
-chunk in the same group that itself carried <code>prft</code> fields. If the
-previous full chunk had no <code>prft</code>, an encoder that begins emitting
-<code>prft</code> mid-group <span class="bcp14">MUST</span> use absolute encodings (i.e. re-anchor).<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-3"><code>prftNtpTimestamp</code> (ID 18) and <code>prftMediaTime</code> (ID 20) have no
+default value, so a full LOCMAF chunk that carries <code>prft</code> <span class="bcp14">MUST</span>
+include both; <code>prftVersion</code> (ID 22) and <code>prftFlags</code> (ID 24)
+default as given above and <span class="bcp14">MAY</span> be omitted when they match their
+defaults. A full chunk therefore carries <code>prft</code> iff IDs 18 and 20
+are present in its property block.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">In a delta chunk, the scalar fields are zigzag-encoded deltas
+against the most recent full chunk in the same group that itself
+carried <code>prft</code> fields; a field left absent is unchanged from that
+reference. If the previous full chunk had no <code>prft</code>, an encoder
+that begins emitting <code>prft</code> mid-group <span class="bcp14">MUST</span> use absolute encodings
+(i.e. re-anchor).<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 <div id="prftntptimestamp">
 <section id="section-8.2.1">
           <h4 id="name-prftntptimestamp">
@@ -2313,8 +2353,8 @@ defines.<a href="#section-8.2.4-1" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-8.3-1">Fields whose source is the <code>FileTypeBox</code> payload of a <code>styp</code> box
 (<span>[<a href="#ISOBMFF" class="cite xref">ISOBMFF</a>]</span>, §4.3) at the top of a CMAF chunk:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-5">
-          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<table class="center" id="table-6">
+          <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -2354,8 +2394,8 @@ Header's <code>ftyp</code>. Per <span>[<a href="#CMAF" class="cite xref">CMAF</a
         <h3 id="name-emsg-field">
 <a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-emsg-field" class="section-name selfRef">emsg field</a>
         </h3>
-<table class="center" id="table-6">
-          <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<table class="center" id="table-7">
+          <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -2385,8 +2425,8 @@ present; there is no delta encoding for <code>emsg</code>.<a href="#section-8.4-
         <h3 id="name-delta-deletion-marker">
 <a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-delta-deletion-marker" class="section-name selfRef">Delta deletion marker</a>
         </h3>
-<table class="center" id="table-7">
-          <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<table class="center" id="table-8">
+          <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -2428,135 +2468,88 @@ property block, unchanged.<a href="#section-9-1" class="pilcrow">¶</a></p>
 <p id="section-9.1-1">The encoder walks the source <code>moof</code> (paired with the catalog's
 <code>moov</code>) and emits each moof field only when the value cannot be
 derived from the <code>moov</code>'s <code>trex</code> defaults:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-8">
-          <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
-<thead>
-            <tr>
-              <th class="text-left" rowspan="1" colspan="1">Field</th>
-              <th class="text-left" rowspan="1" colspan="1">Emitted when</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhdSampleDescriptionIndex</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhd.HasSampleDescriptionIndex()</code> AND value ≠ <code>trex.default_sample_description_index</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhdDefaultSampleDuration</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhd.HasDefaultSampleDuration()</code> AND value ≠ <code>trex.default_sample_duration</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhdDefaultSampleSize</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">all samples in the chunk have the same size AND that size ≠ <code>trex.default_sample_size</code> AND <code>sample_count &gt; 1</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhdDefaultSampleFlags</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfhd.HasDefaultSampleFlags()</code> AND value ≠ <code>trex.default_sample_flags</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>tfdtBaseMediaDecodeTime</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">always</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trunSampleCount</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">always</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trunFirstSampleFlags</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trun.HasFirstSampleFlags()</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trunSampleSizes</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trun.HasSampleSize()</code> AND sample sizes are not all equal AND <code>sample_count &gt; 1</code>; the list carries <code>sample_count − 1</code> values (first n−1 in chunk order)</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trunSampleDurations</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trun.HasSampleDuration()</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trunSampleCompositionTimeOffsets</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trun.HasSampleCompositionTimeOffset()</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trunSampleFlags</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>trun.HasSampleFlags()</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>sencPerSampleIVSize</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>senc</code> present AND <code>per_sample_iv_size ≠ tenc.default_per_sample_iv_size</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>sencInitializationVector</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>senc</code> present AND <code>per_sample_iv_size &gt; 0</code> AND samples carry IVs (see also <a href="#cenc-iv" class="auto internal xref">Section 14.4</a>)</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>sencSubsampleCount</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>senc</code> present AND samples carry subsample maps</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>sencBytesOfClearData</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">same as <code>sencSubsampleCount</code>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>sencBytesOfProtectedData</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">same as <code>sencSubsampleCount</code>
-</td>
-            </tr>
-          </tbody>
-        </table>
+<span class="break"></span><dl class="dlNewline" id="section-9.1-2">
+          <dt id="section-9.1-2.1"><code>tfhdSampleDescriptionIndex</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.2">
+            <p id="section-9.1-2.2.1"><code>tfhd.HasSampleDescriptionIndex()</code> AND value ≠ <code>trex.default_sample_description_index</code><a href="#section-9.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.3"><code>tfhdDefaultSampleDuration</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.4">
+            <p id="section-9.1-2.4.1"><code>tfhd.HasDefaultSampleDuration()</code> AND value ≠ <code>trex.default_sample_duration</code><a href="#section-9.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.5"><code>tfhdDefaultSampleSize</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.6">
+            <p id="section-9.1-2.6.1">all samples in the chunk have the same size AND that size ≠ <code>trex.default_sample_size</code> AND <code>sample_count &gt; 1</code><a href="#section-9.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.7"><code>tfhdDefaultSampleFlags</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.8">
+            <p id="section-9.1-2.8.1"><code>tfhd.HasDefaultSampleFlags()</code> AND value ≠ <code>trex.default_sample_flags</code><a href="#section-9.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.9"><code>tfdtBaseMediaDecodeTime</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.10">
+            <p id="section-9.1-2.10.1">always<a href="#section-9.1-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.11"><code>trunSampleCount</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.12">
+            <p id="section-9.1-2.12.1">always<a href="#section-9.1-2.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.13"><code>trunFirstSampleFlags</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.14">
+            <p id="section-9.1-2.14.1"><code>trun.HasFirstSampleFlags()</code><a href="#section-9.1-2.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.15"><code>trunSampleSizes</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.16">
+            <p id="section-9.1-2.16.1"><code>trun.HasSampleSize()</code> AND sample sizes are not all equal AND <code>sample_count &gt; 1</code>; the list carries <code>sample_count − 1</code> values (first n−1 in chunk order)<a href="#section-9.1-2.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.17"><code>trunSampleDurations</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.18">
+            <p id="section-9.1-2.18.1"><code>trun.HasSampleDuration()</code><a href="#section-9.1-2.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.19"><code>trunSampleCompositionTimeOffsets</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.20">
+            <p id="section-9.1-2.20.1"><code>trun.HasSampleCompositionTimeOffset()</code><a href="#section-9.1-2.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.21"><code>trunSampleFlags</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.22">
+            <p id="section-9.1-2.22.1"><code>trun.HasSampleFlags()</code><a href="#section-9.1-2.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.23"><code>sencPerSampleIVSize</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.24">
+            <p id="section-9.1-2.24.1"><code>senc</code> present AND <code>per_sample_iv_size ≠ tenc.default_per_sample_iv_size</code><a href="#section-9.1-2.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.25"><code>sencInitializationVector</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.26">
+            <p id="section-9.1-2.26.1"><code>senc</code> present AND <code>per_sample_iv_size &gt; 0</code> AND samples carry IVs (see also <a href="#cenc-iv" class="auto internal xref">Section 14.4</a>)<a href="#section-9.1-2.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.27"><code>sencSubsampleCount</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.28">
+            <p id="section-9.1-2.28.1"><code>senc</code> present AND samples carry subsample maps<a href="#section-9.1-2.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.29"><code>sencBytesOfClearData</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.30">
+            <p id="section-9.1-2.30.1">same as <code>sencSubsampleCount</code><a href="#section-9.1-2.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.31"><code>sencBytesOfProtectedData</code></dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.32">
+            <p id="section-9.1-2.32.1">same as <code>sencSubsampleCount</code><a href="#section-9.1-2.32.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
 <p id="section-9.1-3">In strict <code>cmf2</code> mode (see <a href="#scope" class="auto internal xref">Section 6</a>), <code>tfhdDefaultSampleDuration</code>,
 <code>tfhdDefaultSampleSize</code>, <code>tfhdDefaultSampleFlags</code>, and
 <code>tfhdSampleDescriptionIndex</code> are emitted unconditionally on the
@@ -2728,8 +2721,12 @@ varints until the prefix is exhausted.<a href="#section-10.1.1-4" class="pilcrow
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-tfdtbasemediadecodetime-is-" class="section-name selfRef"><code>tfdtBaseMediaDecodeTime</code> is normally derived</a>
         </h3>
 <p id="section-10.2-1">The receiver derives the new BMDT as
-<code>previous_bmdt + sum(previous_sample_durations)</code>. When the source
-BMDT diverges from this derivation (audio pre-roll, splicing,
+<code>previous_bmdt + sum(previous_sample_durations)</code>. This is safe because
+CMAF requires the decode timeline to be contiguous — each fragment's
+<code>baseMediaDecodeTime</code> equals the previous fragment's plus the sum of
+its sample durations (see <a href="#bmdt-contiguity" class="auto internal xref">Section 6.3</a>, which carries the
+CMAF reference and its normative keyword). When the source BMDT
+nevertheless diverges from this derivation (audio pre-roll, splicing,
 stream re-anchor), the encoder <span class="bcp14">MUST</span> emit <code>tfdtBaseMediaDecodeTime</code>
 (ID 10) in the delta chunk as an absolute unsigned varint (i.e.
 the same encoding as in a full chunk, not a zigzag delta). The
@@ -2966,8 +2963,8 @@ payload:<a href="#section-13.2-1" class="pilcrow">¶</a></p>
 record = scheme_id_uri          (varint length + UTF-8 bytes)
        | value                  (varint length + UTF-8 bytes)
        | timescale              (varint; 0 = "use track mdhd.timescale")
-       | presentation_time      (encoding depends on timescale, see below)
-       | event_duration         (varint, in `timescale` ticks; 0 = unknown)
+       | presentation_time      (encoding depends on timescale; below)
+       | event_duration         (varint, `timescale` ticks; 0 = unknown)
        | id                     (varint)
        | message_data           (varint length + opaque bytes)
 </pre><a href="#section-13.2-2" class="pilcrow">¶</a>
@@ -3228,8 +3225,9 @@ unchanged across MOQT.<a href="#section-15-5" class="pilcrow">¶</a></p>
 <p id="section-16-1">A receiver maintains, per subscribed track:<a href="#section-16-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-16-2">
 <li id="section-16-2.1">
-          <p id="section-16-2.1.1">The track's CMAF Header (from the catalog), parsed for <code>trex</code>
-defaults, <code>tenc</code> defaults, and <code>mdhd.timescale</code>.<a href="#section-16-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-16-2.1.1">The track's CMAF Header (from the catalog), parsed for the
+single <code>trak</code>'s <code>track_ID</code>, <code>trex</code> defaults, <code>tenc</code> defaults, and
+<code>mdhd.timescale</code>.<a href="#section-16-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-16-2.2">
           <p id="section-16-2.2.1">An in-group "previous chunk" state, populated from the most
@@ -3272,7 +3270,23 @@ present; omits them otherwise.<a href="#section-16-4.5.2.3.1" class="pilcrow">¶
             <li id="section-16-4.5.2.4">
               <p id="section-16-4.5.2.4.1">Synthesises the <code>moof</code> box (<code>mfhd</code>, <code>traf</code> with <code>tfhd</code>,
 <code>tfdt</code>, <code>trun</code>, optionally <code>senc</code>/<code>saio</code>/<code>saiz</code>) from the
-moof fields and the CMAF Header's <code>trex</code> / <code>tenc</code> defaults.<a href="#section-16-4.5.2.4.1" class="pilcrow">¶</a></p>
+moof fields and the CMAF Header's <code>trex</code> / <code>tenc</code> defaults.
+The LOCMAF wire format carries neither the <code>track_ID</code> nor the
+<code>tfhd</code> flags, so the receiver supplies them from the init and
+from the CMAF rules:<a href="#section-16-4.5.2.4.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-16-4.5.2.4.2.1">
+                  <p id="section-16-4.5.2.4.2.1.1">The synthesised <code>tfhd.track_ID</code> <span class="bcp14">MUST</span> be set to the <code>track_ID</code>
+of the single <code>trak</code> in the CMAF Header's <code>moov</code> (item 1).<a href="#section-16-4.5.2.4.2.1.1" class="pilcrow">¶</a></p>
+</li>
+                <li class="normal" id="section-16-4.5.2.4.2.2">
+                  <p id="section-16-4.5.2.4.2.2.1">The synthesised <code>tfhd</code> <span class="bcp14">MUST</span> set the <code>default-base-is-moof</code>
+flag (<code>tf_flags</code> <code>0x020000</code>) and <span class="bcp14">MUST NOT</span> set
+<code>base-data-offset-present</code>, as required by <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span>; sample
+data offsets are therefore relative to the start of the
+containing <code>moof</code> (<span>[<a href="#ISOBMFF" class="cite xref">ISOBMFF</a>]</span>).<a href="#section-16-4.5.2.4.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              </ul>
 </li>
             <li id="section-16-4.5.2.5">
               <p id="section-16-4.5.2.5.1">Wraps the mdat payload bytes in an 8-byte <code>mdat</code> box header.<a href="#section-16-4.5.2.5.1" class="pilcrow">¶</a></p>
@@ -3303,10 +3317,6 @@ legal CMAF.<a href="#section-16-6.1.1" class="pilcrow">¶</a></p>
           <p id="section-16-6.3.1">Whether <code>tfhd</code> defaults that match <code>trex</code> appear in the
 reconstructed <code>tfhd</code> (they <span class="bcp14">SHOULD</span> when the encoder ran in strict
 <code>cmf2</code> mode; they <span class="bcp14">MAY</span> otherwise).<a href="#section-16-6.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-16-6.4">
-          <p id="section-16-6.4.1">The reconstructed <code>mdat</code> box header bytes (which the receiver
-synthesises rather than carrying on the wire).<a href="#section-16-6.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-16-7">A receiver <span class="bcp14">MUST NOT</span> depend on byte-level identity with the source
@@ -3358,46 +3368,50 @@ LOCMAF adds no new replay attack surface.<a href="#section-17-5" class="pilcrow"
       <h2 id="name-iana-considerations">
 <a href="#section-18" class="section-number selfRef">18. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-18-1">This document requests IANA to register the following values.<a href="#section-18-1" class="pilcrow">¶</a></p>
-<div id="cmsf-catalog-properties">
+<p id="section-18-1">This document does not register the <code>"locmaf"</code> packaging value or
+the <code>locmafVersion</code> catalog field with IANA (see
+<a href="#packaging-and-version" class="auto internal xref">Section 18.1</a>); it does request a registry for the
+LOCMAF top-level header IDs (see <a href="#header-id-registry" class="auto internal xref">Section 18.2</a>).<a href="#section-18-1" class="pilcrow">¶</a></p>
+<div id="packaging-and-version">
 <section id="section-18.1">
-        <h3 id="name-cmsf-catalog-properties">
-<a href="#section-18.1" class="section-number selfRef">18.1. </a><a href="#name-cmsf-catalog-properties" class="section-name selfRef">CMSF Catalog Properties</a>
+        <h3 id="name-catalog-packaging-value-and">
+<a href="#section-18.1" class="section-number selfRef">18.1. </a><a href="#name-catalog-packaging-value-and" class="section-name selfRef">Catalog packaging value and <code>locmafVersion</code></a>
         </h3>
-<p id="section-18.1-1">[TODO: Register <code>locmafVersion</code> in the CMSF catalog property
-registry once that registry is defined.]<a href="#section-18.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-13">
-          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
-<thead>
-            <tr>
-              <th class="text-left" rowspan="1" colspan="1">Property</th>
-              <th class="text-left" rowspan="1" colspan="1">Value type</th>
-              <th class="text-left" rowspan="1" colspan="1">Defined in</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>locmafVersion</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">string</td>
-              <td class="text-left" rowspan="1" colspan="1">this document</td>
-            </tr>
-          </tbody>
-        </table>
-<p id="section-18.1-3">The value <code>"0.2"</code> identifies the wire format specified by this
-document.<a href="#section-18.1-3" class="pilcrow">¶</a></p>
+<p id="section-18.1-1">Following the precedent of <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> — whose IANA Considerations
+record no IANA actions for its <code>"cmaf"</code> packaging value or its
+added catalog fields — this document registers neither of the
+following with IANA:<a href="#section-18.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-18.1-2.1">
+            <p id="section-18.1-2.1.1"><code>packaging: "locmaf"</code> extends the <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> packaging-values table
+(see <a href="#catalog" class="auto internal xref">Section 4</a>). <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> defines no IANA registry for packaging
+values; new values are introduced by the documents that define
+them.<a href="#section-18.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-18.1-2.2">
+            <p id="section-18.1-2.2.1"><code>locmafVersion</code> is a track-level catalog field defined by this
+document (see <a href="#catalog" class="auto internal xref">Section 4</a>). <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> permits documents and
+producers to define additional catalog fields and maintains no
+IANA registry of them.<a href="#section-18.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-18.1-3">The set of valid <code>locmafVersion</code> values — <code>"0.2"</code> for this
+document — is governed by this specification and its successors; no
+IANA action is required. Should a future <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> revision introduce
+an IANA packaging-value registry, the <code>"locmaf"</code> value <span class="bcp14">SHOULD</span> be
+registered there, while <code>locmafVersion</code> and its values remain
+document-governed.<a href="#section-18.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="locmaf-top-level-header-ids">
+<div id="header-id-registry">
 <section id="section-18.2">
         <h3 id="name-locmaf-top-level-header-ids">
 <a href="#section-18.2" class="section-number selfRef">18.2. </a><a href="#name-locmaf-top-level-header-ids" class="section-name selfRef">LOCMAF Top-Level Header IDs</a>
         </h3>
 <p id="section-18.2-1">This document defines a new registry for LOCMAF top-level header
 IDs.<a href="#section-18.2-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-14">
-          <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<table class="center" id="table-13">
+          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">ID</th>
@@ -3454,7 +3468,7 @@ field-ID assignment for this version is given in <a href="#field-ref" class="aut
 <dd class="break"></dd>
 <dt id="MSF">[MSF]</dt>
         <dd>
-<span class="refAuthor">Law, W.</span>, <span class="refTitle">"MOQT Streaming Format"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-msf-00</span>, <time datetime="2026-01-19" class="refDate">19 January 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-msf-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-msf-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Law, W.</span> and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"MOQT Streaming Format"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-msf-01</span>, <time datetime="2026-06-02" class="refDate">2 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-msf-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-msf-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
@@ -3475,11 +3489,11 @@ field-ID assignment for this version is given in <a href="#field-ref" class="aut
 <dl class="references">
 <dt id="CENC">[CENC]</dt>
         <dd>
-<span class="refTitle">"Information technology — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files"</span>, <span class="seriesInfo">ISO/IEC 23001-7:2024</span>, <time datetime="2024-08" class="refDate">August 2024</time>. </dd>
+<span class="refTitle">"Information technology — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files"</span>, <span class="seriesInfo">ISO/IEC 23001-7:2023</span>, <time datetime="2023" class="refDate">2023</time>. </dd>
 <dd class="break"></dd>
 <dt id="CMAF">[CMAF]</dt>
         <dd>
-<span class="refTitle">"Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media"</span>, <span class="seriesInfo">ISO/IEC 23000-19:2023</span>, <time datetime="2023" class="refDate">2023</time>. </dd>
+<span class="refTitle">"Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media"</span>, <span class="seriesInfo">ISO/IEC 23000-19:2024</span>, <time datetime="2024" class="refDate">2024</time>. </dd>
 <dd class="break"></dd>
 <dt id="COMPRESSED-MP4">[COMPRESSED-MP4]</dt>
         <dd>
@@ -3487,7 +3501,7 @@ field-ID assignment for this version is given in <a href="#field-ref" class="aut
 <dd class="break"></dd>
 <dt id="DASH">[DASH]</dt>
         <dd>
-<span class="refTitle">"Information technology — Dynamic adaptive streaming over HTTP (DASH) — Part 1: Media presentation description and segment formats"</span>, <span class="seriesInfo">ISO/IEC 23009-1:2022</span>, <time datetime="2022" class="refDate">2022</time>. </dd>
+<span class="refTitle">"Information technology — Dynamic adaptive streaming over HTTP (DASH) — Part 1: Media presentation description and segment formats"</span>, <span class="seriesInfo">ISO/IEC 23009-1:2026</span>, <time datetime="2026" class="refDate">2026</time>. </dd>
 <dd class="break"></dd>
 <dt id="DASH-IF-INGEST">[DASH-IF-INGEST]</dt>
         <dd>
@@ -3495,7 +3509,7 @@ field-ID assignment for this version is given in <a href="#field-ref" class="aut
 <dd class="break"></dd>
 <dt id="ISOBMFF">[ISOBMFF]</dt>
         <dd>
-<span class="refTitle">"Information technology — Coding of audio-visual objects — Part 12: ISO base media file format"</span>, <span class="seriesInfo">ISO/IEC 14496-12:2022</span>, <time datetime="2022" class="refDate">2022</time>. </dd>
+<span class="refTitle">"Information technology — Coding of audio-visual objects — Part 12: ISO base media file format"</span>, <span class="seriesInfo">ISO/IEC 14496-12:2026</span>, <time datetime="2026" class="refDate">2026</time>. </dd>
 <dd class="break"></dd>
 <dt id="LOC">[LOC]</dt>
         <dd>
@@ -3523,8 +3537,9 @@ field-ID assignment for this version is given in <a href="#field-ref" class="aut
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">LOCMAF was developed as part of the Master Thesis work of Hugo
-Björs at Eyevinn Technology, supervised by Torbjörn Einarsson.
+<p id="appendix-A-1">The initial version of LOCMAF was developed as part of the Master
+Thesis work of Hugo Björs at Eyevinn Technology, supervised by
+Torbjörn Einarsson.
 The authors thank the Media over QUIC working group, in particular
 the authors and contributors to <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span> and <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>, for the prior
 art this work builds on.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
