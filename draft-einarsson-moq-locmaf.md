@@ -42,23 +42,23 @@ informative:
   CMAF:
     title: "Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media"
     seriesinfo:
-      ISO/IEC: 23000-19:2023
-    date: 2023
+      ISO/IEC: 23000-19:2024
+    date: 2024
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO base media file format"
     seriesinfo:
-      ISO/IEC: 14496-12:2022
-    date: 2022
+      ISO/IEC: 14496-12:2026
+    date: 2026
   CENC:
     title: "Information technology — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files"
     seriesinfo:
-      ISO/IEC: 23001-7:2024
-    date: 2024-08
+      ISO/IEC: 23001-7:2023
+    date: 2023
   DASH:
     title: "Information technology — Dynamic adaptive streaming over HTTP (DASH) — Part 1: Media presentation description and segment formats"
     seriesinfo:
-      ISO/IEC: 23009-1:2022
-    date: 2022
+      ISO/IEC: 23009-1:2026
+    date: 2026
   LOC: I-D.ietf-moq-loc
   COMPRESSED-MP4: I-D.lcurley-compressed-mp4
   DASH-IF-INGEST:
@@ -78,32 +78,33 @@ This document specifies LOCMAF (Low Overhead CMAF for Media over
 QUIC), a compact wire format for streaming low-latency CMAF media
 over the MoQ Transport protocol (MOQT) with per-object overhead
 comparable to the Low Overhead Container (LOC). LOCMAF carries the
-CMAF chunk head — `styp` (segment type), `prft` (producer
-reference time), any number of `emsg` (event message) boxes, and
-the `moof` (movie fragment) — as a small set of tagged fields
-inside one of
-two LOCMAF object kinds, while leaving the sample
-data (`mdat`) untouched. The first object of each MOQT group carries
-a full reference; subsequent objects in the same group carry only
-the differences. The receiver reconstructs CMAF chunks that are
-semantically equivalent to the sender input, including
-encryption metadata required by CMAF DRM (Common Encryption)
-pipelines.
+CMAF chunk head metadata from a single `moof` (movie fragment) —
+as a small set of tagged fields inside one of two LOCMAF object
+kinds, while leaving the sample data (`mdat`) untouched. In
+addition, it can carry the optional `styp` (segment type), `prft`
+(producer reference time), any number of `emsg` (event message)
+boxes. The first object of each MOQT group carries a full
+reference; subsequent objects in the same group carry only the
+differences. The receiver reconstructs CMAF chunks that are
+semantically equivalent to the sender input, including encryption
+metadata required by CMAF DRM (Common Encryption) pipelines.
 
 
 --- middle
 
 # Introduction
 
-CMAF {{CMAF}} chunk headers are typically over 100 bytes, while the
-codec frames they describe may be only a few hundred bytes at low
-latency. Streaming CMAF directly over MoQ Transport {{MOQT}}
+CMAF {{CMAF}} chunk headers have a size starting at 100 bytes, while
+the codec frames they describe may be only a few hundred bytes at
+low latency and low-bitrate such as audio tracks.
+Streaming CMAF directly over MoQ Transport {{MOQT}}
 therefore incurs a per-object overhead that the Low Overhead
-Container (LOC) {{LOC}} avoids by carrying raw codec frames. LOC,
-however, cannot transport the per-sample CENC {{CENC}} metadata
-needed for browser EME / CDM decryption of DRM-protected live
-streams, nor the `prft` (Producer Reference Time) and `emsg` (DASH
-Event Message) boxes that CMAF carries alongside the `moof`.
+Container (LOC) {{LOC}} avoids by carrying raw codec frames with
+a minimal set of metadata. LOC, however, cannot transport the
+per-sample CENC {{CENC}} metadata needed for browser EME / CDM decryption
+of DRM-protected live streams, nor the `prft` (Producer Reference Time)
+and `emsg` (DASH Event Message) boxes that CMAF may carry alongside
+the `moof`.
 
 LOCMAF closes this gap. It exploits the observation that consecutive
 CMAF chunk heads within a single CMAF segment are nearly identical:
@@ -119,10 +120,16 @@ receiver reconstruction algorithm, and the DRM box round-trip.
 
 ## Relationship to prior work
 
-The Compressed MP4 draft {{COMPRESSED-MP4}} addresses the general
-problem of compressing ISO BMFF box payloads, including CMAF
-initialisation segments. LOCMAF takes a complementary, narrower
-approach:
+A reason that CMAF headers are big is that they have a history
+in the multi-sample MP4 file format. Furthermore, each individual
+box starts with an 8-byte header using a fixed 4-byte size
+and a 4-byte identifier. This is in contrast to MOQT and QUIC
+that use varint.
+
+A general MP4/CMAF box can be compressed by reducing the header
+size by using varints and shorter ids as proposed in the
+Compressed MP4 draft {{COMPRESSED-MP4}}. LOCMAF takes
+a more specific approach:
 
 - LOCMAF does **not** compress the CMAF Header
   (initialisation segment). The CMAF Header is carried verbatim in
@@ -133,26 +140,21 @@ approach:
   benefit: a `locmaf` packaging track uses the **same MSF
   initialisation-data mechanism** as a `cmaf` packaging track,
   and when both wrap the same source they MAY refer to the same
-  init entry (see {{cmaf-header}}). Publishers can therefore
+  init entry (see {{cmaf-header}}), as being proposed for
+  the next draft of {{CMSF}}. Publishers can therefore
   introduce LOCMAF as a more efficient wire format for clients
   that support it without duplicating the initialisation bytes
   for legacy CMAF clients — both audiences consume the same init
   from the same catalog entry, and the publisher only adds the
-  LOCMAF-encoded media track alongside the CMAF one. Where
-  generic init compression is desired, {{COMPRESSED-MP4}} or a
-  generic transport-layer compression layer can be applied
-  independently of LOCMAF.
+  LOCMAF-encoded media track alongside the CMAF one.
 - LOCMAF's goal for the per-chunk path is **functionally
-  equivalent reconstruction**, not byte-exact reconstruction. The
-  reconstructed CMAF chunk MUST carry the same samples, sample
+  equivalent reconstruction**, not byte-exact reconstruction: the
+  reconstructed CMAF chunk carries the same samples, sample
   metadata, and CENC metadata as the source, but byte-level
-  details that do not affect a CMAF reader are not preserved. For
-  example, the relative order of generated `saio` / `saiz` boxes
-  inside the reconstructed `traf` is implementation-defined, the
-  `trun.tr_flags` packing is canonicalised, and `tfhd` defaults
-  that match `trex` are silently re-supplied on reconstruction. A
-  receiver MUST NOT rely on byte-level identity with the source
-  CMAF stream.
+  details that do not affect a CMAF reader are not preserved
+  ({{receiver-reconstruction}} lists what may differ). Given that the
+  typical target is to feed an MSE/EME player instance, this is
+  not a disadvantage.
 
 A reference implementation is available {{MOQLIVEMOCK}}. Worked
 examples and diagrams are published at {{LOCMAF-SITE}}.
@@ -235,10 +237,24 @@ A track that carries LOCMAF-encoded chunks MUST advertise:
 - `locmafVersion` equal to `"0.2"` for this version of the
   specification.
 
-`locmafVersion` is present only when `packaging == "locmaf"` and is
-omitted otherwise. Receivers MUST compare against their highest
-supported version and SHOULD refuse the track when the encoder
-advertises a version they do not implement.
+This document extends the allowed `packaging` values defined in
+{{MSF}} to include one new entry, in the same manner that {{CMSF}}
+adds `"cmaf"`:
+
+| Name   | Value    | Reference     |
+|--------|----------|---------------|
+| LOCMAF | `locmaf` | this document |
+
+`locmafVersion` is a track-level catalog field added by this
+document, analogous to the track-level fields {{CMSF}} adds for
+CMAF. It is present only when `packaging == "locmaf"` and is
+omitted otherwise. Its value is a string identifying the LOCMAF
+wire-format version; `"0.2"` denotes the format specified here.
+Receivers MUST compare it against their highest supported version
+and SHOULD refuse the track when the encoder advertises a version
+they do not implement. The set of valid `locmafVersion` values is
+governed by this document and its successors, not by an IANA
+registry (see {{iana}}).
 
 The CMAF Header for a LOCMAF track is carried by the same MSF
 {{MSF}} mechanism that carries the CMAF Header for a plain `cmaf`
@@ -256,7 +272,9 @@ sample level and the CMAF Header bytes are identical at the byte
 level (see {{cmaf-header}}); only the per-chunk wire encoding
 differs.
 
-\[TODO: IANA registry pointer for `locmafVersion`.]
+It should be noted that `cmaf` and `locmaf` track may be mixed,
+e.g. video tracks using `cmaf` packaging while audio uses `locmaf``
+dito.
 
 # CMAF Header Delivery {#cmaf-header}
 
@@ -304,10 +322,10 @@ A LOCMAF publisher MUST ensure that:
 1. **Single `trak` per `moov`.** The CMAF Header contains exactly
    one `trak` box. Multi-track ISO BMFF files MUST be demuxed
    before LOCMAF encoding.
-2. **No KID change within a CMAF chunk.** Key-identifier
+2. **No key ID (KID) change within a CMAF chunk.** Key-identifier
    transitions MUST align with fragment (and therefore chunk)
-   boundaries. This removes the need for `sgpd` / `sbgp` in the
-   wire format.
+   boundaries. This removes the need for `sgpd` / `sbgp` boxes
+   in the wire format.
 3. **Restricted `sample_flags` populations.** Per-sample, default,
    and first-sample `sample_flags` MUST populate only `is_leading`,
    `sample_depends_on`, `sample_is_depended_on`, and
@@ -334,7 +352,7 @@ but does not break LOCMAF:
 2. **Stable `trex` defaults.** Keeping `trex` consistent across the
    stream maximises what can be omitted from each chunk header.
 
-## `tfdt.baseMediaDecodeTime` contiguity
+## `tfdt.baseMediaDecodeTime` contiguity {#bmdt-contiguity}
 
 CMAF (§7.5.18) requires that each fragment's BMDT equal the
 previous fragment's BMDT plus the sum of its sample durations. The
@@ -350,7 +368,7 @@ flags, sample-description index) in the full chunk header even
 when they match `trex`. This costs ~6 B per group but produces
 reconstructed CMAF chunks that satisfy CMAF §7.7.3 fragment self-
 decodability (each chunk is a single-chunk fragment in the LOCMAF
-mapping). Strict `cmf2` mode is signalled out-of-band; it does not
+mapping). It does not need to be signaled since it does not
 affect wire compatibility between encoders and decoders.
 
 # Object Framing {#object-framing}
@@ -378,7 +396,7 @@ unassigned ID, allocated via the IANA registry defined in
 +-----------------------------+
 | header_id        (varint)   |   top-level object kind
 +-----------------------------+
-| properties_length (varint)  |   length of the properties block in bytes
+| properties_length (varint)  |   byte length of the properties block
 +-----------------------------+
 | properties      (variable)  |   sequence of (field_id, value) tuples
 +-----------------------------+
@@ -436,14 +454,14 @@ For a signed 64-bit integer `n`, the mapping to its unsigned
 zigzag representation `z` is:
 
 ~~~
-encode:  z = (n << 1) ^ (n >> 63)              ; arithmetic right shift
-                                                ; equivalently:
-                                                ;   n >= 0:  z = 2 * n
-                                                ;   n <  0:  z = -2 * n - 1
+encode:  z = (n << 1) ^ (n >> 63)  ; arithmetic right shift
+                                   ; equivalently:
+                                   ;   n >= 0:  z = 2 * n
+                                   ;   n <  0:  z = -2 * n - 1
 
-decode:  n = (z >> 1) ^ -(z & 1)               ; equivalently:
-                                                ;   z even:  n =  z / 2
-                                                ;   z odd:   n = -(z + 1) / 2
+decode:  n = (z >> 1) ^ -(z & 1)   ; equivalently:
+                                   ;   z even:  n =  z / 2
+                                   ;   z odd:   n = -(z + 1) / 2
 ~~~
 
 The first few mappings: 0↔0, -1↔1, 1↔2, -2↔3, 2↔4, -3↔5, 3↔6, ….
@@ -452,9 +470,9 @@ The encoded `z` is then serialised as an unsigned MOQT varint
 ({{MOQT}}); decoders read the MOQT varint and apply the decode
 rule above.
 
-This is the same zigzag mapping used by, e.g., Protocol Buffers;
-the description is included here for self-containment of the
-LOCMAF wire format.
+This zigzag mapping is widely used in compact binary
+serialisation formats; the description is included here for
+self-containment of the LOCMAF wire format.
 
 LOCMAF uses zigzag varints wherever a signed delta against the
 in-group reference is written, namely in scalar even-ID fields
@@ -548,8 +566,11 @@ exception (raw bytes rather than a list).
 
 ## prft fields {#prft-fields}
 
-Fields whose source is a `ProducerReferenceTimeBox` ({{CMAF}}
-§6.6.8) attached to the same CMAF chunk:
+The `ProducerReferenceTimeBox` (`prft`, {{CMAF}} §6.6.8, §7.3.2.4)
+carries an NTP-style wall-clock anchor tied to a media time. In
+CMAF it MAY precede any `moof` inside a CMAF chunk and applies to
+the addressable media object whose `moof` it precedes. LOCMAF
+carries it per-chunk through the following fields:
 
 | ID | Symbol             | Source field                  | Kind                  |
 |----|--------------------|-------------------------------|-----------------------|
@@ -558,12 +579,32 @@ Fields whose source is a `ProducerReferenceTimeBox` ({{CMAF}}
 | 22 | `prftVersion`      | `prft.version`                | scalar (default 1)    |
 | 24 | `prftFlags`        | `prft.flags` (24-bit FullBox flags) | scalar (default 0) |
 
-A LOCMAF chunk carries `prft` iff at least one of IDs 18, 20, 22,
-24 is present in its property block. In a delta chunk, the scalar
-fields are zigzag-encoded deltas against the most recent full
-chunk in the same group that itself carried `prft` fields. If the
+`prftNtpTimestamp` (ID 18) and `prftMediaTime` (ID 20) have no
+default value, so a full LOCMAF chunk that carries `prft` MUST
+include both; `prftVersion` (ID 22) and `prftFlags` (ID 24)
+default as given above and MAY be omitted when they match their
+defaults. The receiver reconstructs a `prft` box in the output
+chunk iff IDs 18 and 20 are present.
+
+In a delta chunk, the scalar fields are zigzag-encoded deltas
+against the most recent full chunk in the same group that itself
+carried `prft` fields; a field left absent is unchanged from that
+reference. Deltas are signed because both quantities can decrease
+in valid CMAF streams: producer NTP clocks can be corrected
+backward, and composition-time reordering with B-frames can place
+a chunk's presentation anchor before the previous chunk's. If the
 previous full chunk had no `prft`, an encoder that begins emitting
 `prft` mid-group MUST use absolute encodings (i.e. re-anchor).
+
+This presence-signalling supports three producer patterns with no
+further wire-format support:
+
+1. **None:** no `prft` field is ever emitted.
+2. **Per-group:** absolute `prft` fields on the `LocmafFullHeader`
+   only, absent from subsequent `LocmafDeltaHeader` objects in the
+   group.
+3. **Per-chunk:** absolute `prft` fields on the `LocmafFullHeader`,
+   delta `prft` fields on subsequent `LocmafDeltaHeader` objects.
 
 ### `prftNtpTimestamp`
 
@@ -600,7 +641,7 @@ The steady-state delta for common frame periods lands in the
 for 60 fps, ~171.8 M for 25 fps. The 4-byte cost is the dominant
 per-chunk overhead of the prft path; encoders that do not need
 drift-detection precision MAY choose the per-group emission
-pattern instead of per-chunk (see {{prft}}).
+pattern instead of per-chunk (see the producer patterns above).
 
 ### `prftMediaTime`
 
@@ -691,24 +732,54 @@ The encoder walks the source `moof` (paired with the catalog's
 `moov`) and emits each moof field only when the value cannot be
 derived from the `moov`'s `trex` defaults:
 
-| Field                              | Emitted when                                                                              |
-|------------------------------------|-------------------------------------------------------------------------------------------|
-| `tfhdSampleDescriptionIndex`       | `tfhd.HasSampleDescriptionIndex()` AND value ≠ `trex.default_sample_description_index`    |
-| `tfhdDefaultSampleDuration`        | `tfhd.HasDefaultSampleDuration()` AND value ≠ `trex.default_sample_duration`              |
-| `tfhdDefaultSampleSize`            | all samples in the chunk have the same size AND that size ≠ `trex.default_sample_size` AND `sample_count > 1` |
-| `tfhdDefaultSampleFlags`           | `tfhd.HasDefaultSampleFlags()` AND value ≠ `trex.default_sample_flags`                    |
-| `tfdtBaseMediaDecodeTime`          | always                                                                                    |
-| `trunSampleCount`                  | always                                                                                    |
-| `trunFirstSampleFlags`             | `trun.HasFirstSampleFlags()`                                                              |
-| `trunSampleSizes`                  | `trun.HasSampleSize()` AND sample sizes are not all equal AND `sample_count > 1`; the list carries `sample_count − 1` values (first n−1 in chunk order) |
-| `trunSampleDurations`              | `trun.HasSampleDuration()`                                                                |
-| `trunSampleCompositionTimeOffsets` | `trun.HasSampleCompositionTimeOffset()`                                                   |
-| `trunSampleFlags`                  | `trun.HasSampleFlags()`                                                                   |
-| `sencPerSampleIVSize`              | `senc` present AND `per_sample_iv_size ≠ tenc.default_per_sample_iv_size`                 |
-| `sencInitializationVector`         | `senc` present AND `per_sample_iv_size > 0` AND samples carry IVs (see also {{cenc-iv}})  |
-| `sencSubsampleCount`               | `senc` present AND samples carry subsample maps                                           |
-| `sencBytesOfClearData`             | same as `sencSubsampleCount`                                                              |
-| `sencBytesOfProtectedData`         | same as `sencSubsampleCount`                                                              |
+{: newline="true"}
+`tfhdSampleDescriptionIndex`
+: `tfhd.HasSampleDescriptionIndex()` AND value ≠ `trex.default_sample_description_index`
+
+`tfhdDefaultSampleDuration`
+: `tfhd.HasDefaultSampleDuration()` AND value ≠ `trex.default_sample_duration`
+
+`tfhdDefaultSampleSize`
+: all samples in the chunk have the same size AND that size ≠ `trex.default_sample_size` AND `sample_count > 1`
+
+`tfhdDefaultSampleFlags`
+: `tfhd.HasDefaultSampleFlags()` AND value ≠ `trex.default_sample_flags`
+
+`tfdtBaseMediaDecodeTime`
+: always
+
+`trunSampleCount`
+: always
+
+`trunFirstSampleFlags`
+: `trun.HasFirstSampleFlags()`
+
+`trunSampleSizes`
+: `trun.HasSampleSize()` AND sample sizes are not all equal AND `sample_count > 1`; the list carries `sample_count − 1` values (first n−1 in chunk order)
+
+`trunSampleDurations`
+: `trun.HasSampleDuration()`
+
+`trunSampleCompositionTimeOffsets`
+: `trun.HasSampleCompositionTimeOffset()`
+
+`trunSampleFlags`
+: `trun.HasSampleFlags()`
+
+`sencPerSampleIVSize`
+: `senc` present AND `per_sample_iv_size ≠ tenc.default_per_sample_iv_size`
+
+`sencInitializationVector`
+: `senc` present AND `per_sample_iv_size > 0` AND samples carry IVs (see also {{cenc-iv}})
+
+`sencSubsampleCount`
+: `senc` present AND samples carry subsample maps
+
+`sencBytesOfClearData`
+: same as `sencSubsampleCount`
+
+`sencBytesOfProtectedData`
+: same as `sencSubsampleCount`
 
 In strict `cmf2` mode (see {{scope}}), `tfhdDefaultSampleDuration`,
 `tfhdDefaultSampleSize`, `tfhdDefaultSampleFlags`, and
@@ -822,8 +893,12 @@ varints until the prefix is exhausted.
 ## `tfdtBaseMediaDecodeTime` is normally derived
 
 The receiver derives the new BMDT as
-`previous_bmdt + sum(previous_sample_durations)`. When the source
-BMDT diverges from this derivation (audio pre-roll, splicing,
+`previous_bmdt + sum(previous_sample_durations)`. This is safe because
+CMAF requires the decode timeline to be contiguous — each fragment's
+`baseMediaDecodeTime` equals the previous fragment's plus the sum of
+its sample durations (see {{bmdt-contiguity}}, which carries the
+CMAF reference and its normative keyword). When the source BMDT
+nevertheless diverges from this derivation (audio pre-roll, splicing,
 stream re-anchor), the encoder MUST emit `tfdtBaseMediaDecodeTime`
 (ID 10) in the delta chunk as an absolute unsigned varint (i.e.
 the same encoding as in a full chunk, not a zigzag delta). The
@@ -919,46 +994,6 @@ populates only the five bits listed above (see {{scope}}). Source
 content that uses other bits MUST be carried via plain CMAF
 packaging instead.
 
-# `prft` Round-Trip {#prft}
-
-`prft` ({{CMAF}} §6.6.8, §7.3.2.4) carries an NTP-style wall-clock
-anchor tied to a media time. In CMAF it MAY precede any `moof`
-inside a CMAF chunk; the `prft` applies to the addressable media
-object whose `moof` it precedes. LOCMAF carries it per-chunk via
-field IDs 18, 20, 22, and 24 inside the chunk header (see
-{{prft-fields}}).
-
-The reconstructed `prft.reference_track_ID` is always the
-`track_ID` of the single `trak` in the CMAF Header `moov`; no
-field is needed on the wire.
-
-## Presence
-
-`prft` is optional per chunk. The receiver reconstructs a `prft`
-box in the output CMAF chunk iff at least one `prft` field (18, 20,
-22, or 24) is present in the chunk header. Three producer patterns
-are
-supported by this presence-signalling without further wire-format
-support:
-
-1. **None:** no `prft` field ever emitted.
-2. **Per-group:** absolute `prft` fields emitted on the
-   `LocmafFullHeader` only; absent from subsequent
-   `LocmafDeltaHeader` objects in the group.
-3. **Per-chunk:** absolute `prft` fields on the
-   `LocmafFullHeader`, delta `prft` fields on subsequent
-   `LocmafDeltaHeader` objects.
-
-## Delta semantics
-
-In a delta chunk, `prftNtpTimestamp` (ID 18) and `prftMediaTime`
-(ID 20) are zigzag-signed varint deltas against the most recent
-full chunk in the same group that carried the same field. Deltas
-are signed because both quantities can decrease in valid CMAF
-streams: producer NTP clocks can be corrected backward, and
-composition-time reordering with B-frames can place a chunk's
-presentation anchor before the previous chunk's.
-
 # `emsg` Round-Trip {#emsg}
 
 The DASH event message box ({{DASH}} §5.10.3) carries application-
@@ -985,8 +1020,8 @@ payload:
 record = scheme_id_uri          (varint length + UTF-8 bytes)
        | value                  (varint length + UTF-8 bytes)
        | timescale              (varint; 0 = "use track mdhd.timescale")
-       | presentation_time      (encoding depends on timescale, see below)
-       | event_duration         (varint, in `timescale` ticks; 0 = unknown)
+       | presentation_time      (encoding depends on timescale; below)
+       | event_duration         (varint, `timescale` ticks; 0 = unknown)
        | id                     (varint)
        | message_data           (varint length + opaque bytes)
 ~~~
@@ -1129,12 +1164,13 @@ preferred mechanism for event metadata. LOCMAF event-only tracks
 are intended for gateways that transit-relay CMAF Ingest content
 unchanged across MOQT.
 
-# Receiver Reconstruction
+# Receiver Reconstruction {#receiver-reconstruction}
 
 A receiver maintains, per subscribed track:
 
-1. The track's CMAF Header (from the catalog), parsed for `trex`
-   defaults, `tenc` defaults, and `mdhd.timescale`.
+1. The track's CMAF Header (from the catalog), parsed for the
+   single `trak`'s `track_ID`, `trex` defaults, `tenc` defaults, and
+   `mdhd.timescale`.
 2. An in-group "previous chunk" state, populated from the most
    recent `LocmafFullHeader` and updated by each subsequent
    `LocmafDeltaHeader`. Discarded on group boundaries and on
@@ -1158,6 +1194,16 @@ For each LOCMAF object, the receiver:
    4. Synthesises the `moof` box (`mfhd`, `traf` with `tfhd`,
       `tfdt`, `trun`, optionally `senc`/`saio`/`saiz`) from the
       moof fields and the CMAF Header's `trex` / `tenc` defaults.
+      The LOCMAF wire format carries neither the `track_ID` nor the
+      `tfhd` flags, so the receiver supplies them from the init and
+      from the CMAF rules:
+      - The synthesised `tfhd.track_ID` MUST be set to the `track_ID`
+        of the single `trak` in the CMAF Header's `moov` (item 1).
+      - The synthesised `tfhd` MUST set the `default-base-is-moof`
+        flag (`tf_flags` `0x020000`) and MUST NOT set
+        `base-data-offset-present`, as required by {{CMAF}}; sample
+        data offsets are therefore relative to the start of the
+        containing `moof` ({{ISOBMFF}}).
    5. Wraps the mdat payload bytes in an 8-byte `mdat` box header.
 6. Feeds the reconstructed chunk to the local CMAF reader / MSE
    pipeline.
@@ -1176,8 +1222,6 @@ in:
 - Whether `tfhd` defaults that match `trex` appear in the
   reconstructed `tfhd` (they SHOULD when the encoder ran in strict
   `cmf2` mode; they MAY otherwise).
-- The reconstructed `mdat` box header bytes (which the receiver
-  synthesises rather than carrying on the wire).
 
 A receiver MUST NOT depend on byte-level identity with the source
 CMAF stream. A downstream consumer that needs a specific CMAF
@@ -1216,21 +1260,35 @@ LOCMAF adds no new replay attack surface.
 
 # IANA Considerations {#iana}
 
-This document requests IANA to register the following values.
+This document does not register the `"locmaf"` packaging value or
+the `locmafVersion` catalog field with IANA (see
+{{packaging-and-version}}); it does request a registry for the
+LOCMAF top-level header IDs (see {{header-id-registry}}).
 
-## CMSF Catalog Properties
+## Catalog packaging value and `locmafVersion` {#packaging-and-version}
 
-\[TODO: Register `locmafVersion` in the CMSF catalog property
-registry once that registry is defined.]
+Following the precedent of {{CMSF}} — whose IANA Considerations
+record no IANA actions for its `"cmaf"` packaging value or its
+added catalog fields — this document registers neither of the
+following with IANA:
 
-| Property        | Value type | Defined in     |
-|-----------------|------------|----------------|
-| `locmafVersion` | string     | this document  |
+- `packaging: "locmaf"` extends the {{MSF}} packaging-values table
+  (see {{catalog}}). {{MSF}} defines no IANA registry for packaging
+  values; new values are introduced by the documents that define
+  them.
+- `locmafVersion` is a track-level catalog field defined by this
+  document (see {{catalog}}). {{MSF}} permits documents and
+  producers to define additional catalog fields and maintains no
+  IANA registry of them.
 
-The value `"0.2"` identifies the wire format specified by this
-document.
+The set of valid `locmafVersion` values — `"0.2"` for this
+document — is governed by this specification and its successors; no
+IANA action is required. Should a future {{MSF}} revision introduce
+an IANA packaging-value registry, the `"locmaf"` value SHOULD be
+registered there, while `locmafVersion` and its values remain
+document-governed.
 
-## LOCMAF Top-Level Header IDs
+## LOCMAF Top-Level Header IDs {#header-id-registry}
 
 This document defines a new registry for LOCMAF top-level header
 IDs.
@@ -1255,8 +1313,9 @@ field-ID assignment for this version is given in {{field-ref}}.
 # Acknowledgments
 {:numbered="false"}
 
-LOCMAF was developed as part of the Master Thesis work of Hugo
-Björs at Eyevinn Technology, supervised by Torbjörn Einarsson.
+The initial version of LOCMAF was developed as part of the Master
+Thesis work of Hugo Björs at Eyevinn Technology, supervised by
+Torbjörn Einarsson.
 The authors thank the Media over QUIC working group, in particular
 the authors and contributors to {{MOQT}} and {{CMSF}}, for the prior
 art this work builds on.
