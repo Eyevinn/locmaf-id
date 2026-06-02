@@ -122,28 +122,25 @@ Table of Contents
      11.1.  Wire encoding
      11.2.  Reconstruction
      11.3.  Encoder constraint
-   12. prft Round-Trip
-     12.1.  Presence
-     12.2.  Delta semantics
-   13. emsg Round-Trip
-     13.1.  Relationship to MSF eventtimeline
-     13.2.  Record format
-       13.2.1.  timescale default
-       13.2.2.  presentation_time encoding
-   14. DRM Box Round-Trip
-     14.1.  Supported schemes
-     14.2.  Supported boxes
-     14.3.  Unsupported boxes
-     14.4.  CENC IV counter prediction (optional)
-   15. Event-Only Tracks and CMAF Ingest Compatibility
-   16. Receiver Reconstruction
-   17. Security Considerations
-   18. IANA Considerations
-     18.1.  Catalog packaging value and locmafVersion
-     18.2.  LOCMAF Top-Level Header IDs
-   19. References
-     19.1.  Normative References
-     19.2.  Informative References
+   12. emsg Round-Trip
+     12.1.  Relationship to MSF eventtimeline
+     12.2.  Record format
+       12.2.1.  timescale default
+       12.2.2.  presentation_time encoding
+   13. DRM Box Round-Trip
+     13.1.  Supported schemes
+     13.2.  Supported boxes
+     13.3.  Unsupported boxes
+     13.4.  CENC IV counter prediction (optional)
+   14. Event-Only Tracks and CMAF Ingest Compatibility
+   15. Receiver Reconstruction
+   16. Security Considerations
+   17. IANA Considerations
+     17.1.  Catalog packaging value and locmafVersion
+     17.2.  LOCMAF Top-Level Header IDs
+   18. References
+     18.1.  Normative References
+     18.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -200,17 +197,12 @@ Table of Contents
       alongside the CMAF one.
 
    *  LOCMAF's goal for the per-chunk path is *functionally equivalent
-      reconstruction*, not byte-exact reconstruction.  The reconstructed
-      CMAF chunk MUST carry the same samples, sample metadata, and CENC
+      reconstruction*, not byte-exact reconstruction: the reconstructed
+      CMAF chunk carries the same samples, sample metadata, and CENC
       metadata as the source, but byte-level details that do not affect
-      a CMAF reader are not preserved.  For example, the relative order
-      of generated saio / saiz boxes inside the reconstructed traf is
-      implementation-defined, the trun.tr_flags packing is
-      canonicalised, and tfhd defaults that match trex are silently re-
-      supplied on reconstruction.  A receiver MUST NOT rely on byte-
-      level identity with the source CMAF stream.  Given that the
-      typical target is to feed an MSE/EME player instance, this is not
-      deemed a disadvantage.
+      a CMAF reader are not preserved (Section 15 lists what may
+      differ).  Given that the typical target is to feed an MSE/EME
+      player instance, this is not a disadvantage.
 
    A reference implementation is available [MOQLIVEMOCK].  Worked
    examples and diagrams are published at [LOCMAF-SITE].
@@ -314,7 +306,7 @@ Table of Contents
    against their highest supported version and SHOULD refuse the track
    when the encoder advertises a version they do not implement.  The set
    of valid locmafVersion values is governed by this document and its
-   successors, not by an IANA registry (see Section 18).
+   successors, not by an IANA registry (see Section 17).
 
    The CMAF Header for a LOCMAF track is carried by the same MSF [MSF]
    mechanism that carries the CMAF Header for a plain cmaf packaging
@@ -396,7 +388,7 @@ Table of Contents
        zero in the source.  See Section 11.
 
    4.  *emsg version 1 only.* Any emsg boxes in the source MUST be
-       version 1 per CMAF §7.4.5.  See Section 13.
+       version 1 per CMAF §7.4.5.  See Section 12.
 
    If a source violates any of these, the publisher MUST NOT use LOCMAF
    packaging for that track and MUST instead use plain CMAF or an
@@ -456,7 +448,7 @@ Table of Contents
    object cleanly.
 
    Future extensions adding new top-level object kinds use any
-   unassigned ID, allocated via the IANA registry defined in Section 18.
+   unassigned ID, allocated via the IANA registry defined in Section 17.
 
 7.2.  Object layout
 
@@ -479,7 +471,7 @@ Table of Contents
    receiver reconstructs a standard mdat box by wrapping these bytes in
    an 8-byte ISO BMFF header.
 
-   For event-only tracks (see Section 15) the mdat payload MAY be zero
+   For event-only tracks (see Section 14) the mdat payload MAY be zero
    bytes; the receiver reconstructs an empty mdat box (8-byte header
    only).
 
@@ -655,8 +647,11 @@ Table of Contents
 
 8.2.  prft fields
 
-   Fields whose source is a ProducerReferenceTimeBox ([CMAF] §6.6.8)
-   attached to the same CMAF chunk:
+   The ProducerReferenceTimeBox (prft, [CMAF] §6.6.8, §7.3.2.4) carries
+   an NTP-style wall-clock anchor tied to a media time.  In CMAF it MAY
+   precede any moof inside a CMAF chunk and applies to the addressable
+   media object whose moof it precedes.  LOCMAF carries it per-chunk
+   through the following fields:
 
      +====+==================+====================+==================+
      | ID | Symbol           | Source field       | Kind             |
@@ -681,15 +676,30 @@ Table of Contents
    prftNtpTimestamp (ID 18) and prftMediaTime (ID 20) have no default
    value, so a full LOCMAF chunk that carries prft MUST include both;
    prftVersion (ID 22) and prftFlags (ID 24) default as given above and
-   MAY be omitted when they match their defaults.  A full chunk
-   therefore carries prft iff IDs 18 and 20 are present in its property
-   block.
+   MAY be omitted when they match their defaults.  The receiver
+   reconstructs a prft box in the output chunk iff IDs 18 and 20 are
+   present.
 
    In a delta chunk, the scalar fields are zigzag-encoded deltas against
    the most recent full chunk in the same group that itself carried prft
-   fields; a field left absent is unchanged from that reference.  If the
-   previous full chunk had no prft, an encoder that begins emitting prft
-   mid-group MUST use absolute encodings (i.e. re-anchor).
+   fields; a field left absent is unchanged from that reference.  Deltas
+   are signed because both quantities can decrease in valid CMAF
+   streams: producer NTP clocks can be corrected backward, and
+   composition-time reordering with B-frames can place a chunk's
+   presentation anchor before the previous chunk's.  If the previous
+   full chunk had no prft, an encoder that begins emitting prft mid-
+   group MUST use absolute encodings (i.e. re-anchor).
+
+   This presence-signalling supports three producer patterns with no
+   further wire-format support:
+
+   1.  *None:* no prft field is ever emitted.
+
+   2.  *Per-group:* absolute prft fields on the LocmafFullHeader only,
+       absent from subsequent LocmafDeltaHeader objects in the group.
+
+   3.  *Per-chunk:* absolute prft fields on the LocmafFullHeader, delta
+       prft fields on subsequent LocmafDeltaHeader objects.
 
 8.2.1.  prftNtpTimestamp
 
@@ -722,7 +732,7 @@ Table of Contents
    fps, ~171.8 M for 25 fps.  The 4-byte cost is the dominant per-chunk
    overhead of the prft path; encoders that do not need drift-detection
    precision MAY choose the per-group emission pattern instead of per-
-   chunk (see Section 12).
+   chunk (see the producer patterns above).
 
 8.2.2.  prftMediaTime
 
@@ -797,7 +807,7 @@ Table of Contents
    | 25 | emsgList | raw bytes (odd,  | A self-delimited              |
    |    |          | length-prefixed) | concatenation of v1 emsg      |
    |    |          |                  | records in CMAF order.  See   |
-   |    |          |                  | Section 13 for record format. |
+   |    |          |                  | Section 12 for record format. |
    +----+----------+------------------+-------------------------------+
 
                                  Table 7
@@ -878,7 +888,7 @@ Table of Contents
 
    sencInitializationVector
       senc present AND per_sample_iv_size > 0 AND samples carry IVs (see
-      also Section 14.4)
+      also Section 13.4)
 
    sencSubsampleCount
       senc present AND samples carry subsample maps
@@ -939,7 +949,7 @@ Table of Contents
    and prftFlags when it is 0).  All emitted values are absolute.
 
    emsgList is emitted iff the source CMAF chunk preceded its moof with
-   one or more v1 emsg boxes.  See Section 13 for the record format.
+   one or more v1 emsg boxes.  See Section 12 for the record format.
 
 10.  Delta LOCMAF Chunk Encoding
 
@@ -1059,7 +1069,7 @@ Table of Contents
 
    prft fields use the encoding above (scalar values become zigzag
    deltas against the in-group reference). emsgList carries the full new
-   event list, with no delta encoding — see Section 13.
+   event list, with no delta encoding — see Section 12.
 
    stypBrandList (ID 23) MUST NOT appear in a LocmafDeltaHeader.
 
@@ -1112,46 +1122,7 @@ Table of Contents
    only the five bits listed above (see Section 6).  Source content that
    uses other bits MUST be carried via plain CMAF packaging instead.
 
-12.  prft Round-Trip
-
-   prft ([CMAF] §6.6.8, §7.3.2.4) carries an NTP-style wall-clock anchor
-   tied to a media time.  In CMAF it MAY precede any moof inside a CMAF
-   chunk; the prft applies to the addressable media object whose moof it
-   precedes.  LOCMAF carries it per-chunk via field IDs 18, 20, 22, and
-   24 inside the chunk header (see Section 8.2).
-
-   The reconstructed prft.reference_track_ID is always the track_ID of
-   the single trak in the CMAF Header moov; no field is needed on the
-   wire.
-
-12.1.  Presence
-
-   prft is optional per chunk.  The receiver reconstructs a prft box in
-   the output CMAF chunk iff at least one prft field (18, 20, 22, or 24)
-   is present in the chunk header.  Three producer patterns are
-   supported by this presence-signalling without further wire-format
-   support:
-
-   1.  *None:* no prft field ever emitted.
-
-   2.  *Per-group:* absolute prft fields emitted on the LocmafFullHeader
-       only; absent from subsequent LocmafDeltaHeader objects in the
-       group.
-
-   3.  *Per-chunk:* absolute prft fields on the LocmafFullHeader, delta
-       prft fields on subsequent LocmafDeltaHeader objects.
-
-12.2.  Delta semantics
-
-   In a delta chunk, prftNtpTimestamp (ID 18) and prftMediaTime (ID 20)
-   are zigzag-signed varint deltas against the most recent full chunk in
-   the same group that carried the same field.  Deltas are signed
-   because both quantities can decrease in valid CMAF streams: producer
-   NTP clocks can be corrected backward, and composition-time reordering
-   with B-frames can place a chunk's presentation anchor before the
-   previous chunk's.
-
-13.  emsg Round-Trip
+12.  emsg Round-Trip
 
    The DASH event message box ([DASH] §5.10.3) carries application-
    defined timed metadata.  CMAF (§7.4.5) mandates version 1 emsg boxes
@@ -1160,14 +1131,14 @@ Table of Contents
    LOCMAF carries emsg as a length-prefixed list of records inside the
    chunk header at field ID 25.  Encoders MUST emit only v1 records.
 
-13.1.  Relationship to MSF eventtimeline
+12.1.  Relationship to MSF eventtimeline
 
    New MOQT deployments SHOULD use a companion MSF eventtimeline track
    [MSF] for event metadata rather than inline emsg.  LOCMAF's emsg
    support exists primarily to preserve inline events in sources
    transcoded from DASH or CMAF Ingest [DASH-IF-INGEST].
 
-13.2.  Record format
+12.2.  Record format
 
    Each record inside emsgList is a compact encoding of a v1 emsg
    payload:
@@ -1183,7 +1154,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    reference_track_id and version are implicit (the track this chunk
    belongs to, and 1 respectively).
 
-13.2.1.  timescale default
+12.2.1.  timescale default
 
    timescale == 0 means "use the track's mdhd.timescale."  Receivers
    write the track's mdhd.timescale into the reconstructed
@@ -1191,7 +1162,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    non-zero timescale only when the source's emsg.timescale actually
    differs from the track timescale.
 
-13.2.2.  presentation_time encoding
+12.2.2.  presentation_time encoding
 
    The encoding of presentation_time depends on the record's timescale
    field:
@@ -1209,12 +1180,12 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    The receiver discriminates by inspecting the record's timescale
    field, which is encoded earlier in the record.
 
-14.  DRM Box Round-Trip
+13.  DRM Box Round-Trip
 
    LOCMAF preserves the per-sample CENC [CENC] metadata needed for EME-
    based decryption.
 
-14.1.  Supported schemes
+13.1.  Supported schemes
 
    LOCMAF v0.2 supports the following CENC [CENC] protection schemes,
    identified by the tenc.default_isProtected = 1 track defaults and the
@@ -1224,7 +1195,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
       initialization vectors are big-endian counters advanced by the
       per-sample encrypted-byte total ([CENC], §10.1); LOCMAF carries
       these IVs via sencInitializationVector and permits omission under
-      the counter rule of Section 14.4.
+      the counter rule of Section 13.4.
 
    *  cbcs: AES-128-CBC subsample pattern encryption with a constant
       initialization vector taken from tenc.default_constant_iv ([CENC],
@@ -1235,7 +1206,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    The cbc1 and cens schemes are out of scope; sources using them MUST
    fall back to plain CMAF packaging.
 
-14.2.  Supported boxes
+13.2.  Supported boxes
 
    +======+=============+==============================================+
    | Box  | Where       | LOCMAF treatment                             |
@@ -1257,7 +1228,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
 
                                   Table 11
 
-14.3.  Unsupported boxes
+13.3.  Unsupported boxes
 
    The following CMAF DRM boxes are not supported by LOCMAF v0.2.
    Sources that require them MUST use plain CMAF packaging instead:
@@ -1279,7 +1250,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
 
                                   Table 12
 
-14.4.  CENC IV counter prediction (optional)
+13.4.  CENC IV counter prediction (optional)
 
    For the cenc scheme, ISO/IEC 23001-7 §9.6 specifies that the per-
    sample initialization vector is a big-endian counter advanced sample-
@@ -1313,7 +1284,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    moof in the first place, so counter prediction does not apply to
    cbcs.
 
-15.  Event-Only Tracks and CMAF Ingest Compatibility
+14.  Event-Only Tracks and CMAF Ingest Compatibility
 
    DASH-IF Ingest [DASH-IF-INGEST] defines a CMAF-based push interface
    for live encoders.  One of its track shapes is the sparse event-only
@@ -1346,7 +1317,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    for gateways that transit-relay CMAF Ingest content unchanged across
    MOQT.
 
-16.  Receiver Reconstruction
+15.  Receiver Reconstruction
 
    A receiver maintains, per subscribed track:
 
@@ -1424,7 +1395,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    layout MUST repackage the output of the LOCMAF receiver to produce
    the desired form.
 
-17.  Security Considerations
+16.  Security Considerations
 
    LOCMAF is a compression layer over CMAF media and does not introduce
    new authentication or confidentiality mechanisms.  It is intended to
@@ -1448,21 +1419,21 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    *  The receiver MUST verify that the CENC-IV counter, if derived,
       does not advance past the per-sample-IV-size range.
 
-   The CENC IV counter-prediction optimisation (Section 14.4) does not
+   The CENC IV counter-prediction optimisation (Section 13.4) does not
    disclose key material and produces the same IV stream a conformant
    encoder would have transmitted; it does not weaken CENC.
 
    Replay considerations within a MOQT group are inherited from MOQT —
    LOCMAF adds no new replay attack surface.
 
-18.  IANA Considerations
+17.  IANA Considerations
 
    This document does not register the "locmaf" packaging value or the
-   locmafVersion catalog field with IANA (see Section 18.1); it does
+   locmafVersion catalog field with IANA (see Section 17.1); it does
    request a registry for the LOCMAF top-level header IDs (see
-   Section 18.2).
+   Section 17.2).
 
-18.1.  Catalog packaging value and locmafVersion
+17.1.  Catalog packaging value and locmafVersion
 
    Following the precedent of [CMSF] — whose IANA Considerations record
    no IANA actions for its "cmaf" packaging value or its added catalog
@@ -1483,7 +1454,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    packaging-value registry, the "locmaf" value SHOULD be registered
    there, while locmafVersion and its values remain document-governed.
 
-18.2.  LOCMAF Top-Level Header IDs
+17.2.  LOCMAF Top-Level Header IDs
 
    This document defines a new registry for LOCMAF top-level header IDs.
 
@@ -1506,9 +1477,9 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
    locmafVersion catalog value (see Section 4).  The full field-ID
    assignment for this version is given in Section 8.
 
-19.  References
+18.  References
 
-19.1.  Normative References
+18.1.  Normative References
 
    [CMSF]     Law, W., "CMSF- a CMAF compliant implementation of MOQT
               Streaming Format", Work in Progress, Internet-Draft,
@@ -1536,7 +1507,7 @@ record = scheme_id_uri          (varint length + UTF-8 bytes)
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-19.2.  Informative References
+18.2.  Informative References
 
    [CENC]     "Information technology — MPEG systems technologies — Part
               7: Common encryption in ISO base media file format files",
