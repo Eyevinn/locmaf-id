@@ -1380,6 +1380,62 @@ interface; neither path is privileged by this document. Producing
 the canonical CMAF chunk is required only for golden-vector
 conformance, not for playback.
 
+# Use Outside MOQT {#outside-moqt}
+
+This section is informative. LOCMAF is specified for carriage as
+MOQT Object payloads, where the transport supplies the framing:
+MOQT gives every Object its length, the subgroup gives in-order
+delivery, and the group boundary marks where a full header
+re-anchors the delta chain. A LOCMAF Object carries no length of
+its own, so any use outside MOQT has to restore that framing. This
+section sketches the minimal wrapping; a full specification of
+such carriage is out of scope for this document.
+
+A *LOCMAF segment* is the self-framed equivalent of one MOQT
+group: the concatenation of the group's LOCMAF Objects
+({{object-encoding}}) in decode order, each prefixed by its
+length —
+
+~~~
+object_length   vi64
+LOCMAF Object   object_length bytes
+~~~
+
+repeated once per Object. The first Object of a segment carries a
+full header, exactly as at a MOQT group boundary, and delta chunks
+reference the preceding Object in the same segment
+({{delta-chunk}}).
+
+The same framing doubles as a storage format. A LOCMAF segment is
+directly a file on disk, and segments concatenate into longer
+files that remain parseable, since every Object is length-prefixed
+and every full header re-anchors decoding; the CMAF Header is
+stored alongside, as for CMAF initialisation and media segments.
+
+The framing also maps directly onto low-latency HTTP delivery:
+
+- In low-latency DASH, a LOCMAF segment is delivered progressively
+  under chunked transfer encoding, each length-prefixed Object
+  taking the role a CMAF chunk has today, with the CMAF Header
+  referenced from the MPD as the initialisation segment.
+- In low-latency HLS, each part carries one or more
+  length-prefixed Objects. A part advertised as independent begins
+  with an Object carrying a full header, so that a client joining
+  there has a complete decode anchor — the part-level counterpart
+  of the mid-group full header of {{element-sequence}}. Because
+  the framing is part of the payload rather than of the HTTP
+  envelope, concatenating the parts of a segment yields the same
+  bytes as the DASH segment and the same file as stored at rest.
+
+The catalog signalling of {{catalog}} has no MPD or playlist
+counterpart defined here: at minimum the packaging, the
+`locmafVersion`, the initialisation-data reference, and any
+content-protection signalling need manifest-level equivalents, and
+the segments need a dedicated media type (such as `video/locmaf`,
+`audio/locmaf`, or `application/locmaf`) so that clients do not
+mistake them for CMAF. Registration of such media types would
+accompany a future specification of this carriage.
+
 # Security Considerations
 
 LOCMAF is a compact packaging for CMAF media and introduces no new
