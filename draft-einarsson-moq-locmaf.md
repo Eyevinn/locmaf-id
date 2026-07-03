@@ -1244,42 +1244,60 @@ receiver MUST reject a chunk that would require it.
 
 ## CENC senc / saiz / saio reconstruction {#canonical-cenc}
 
-When the decoded header carries CENC fields, the receiver
-reconstructs `senc`, `saiz`, and `saio` with the following pinned
-layouts. `saiz` and `saio` are never carried on the wire (see
-{{drm}}); they are recomputed here.
+This section applies when the track is protected
+(`tenc.default_isProtected = 1`) and the chunk's effective values
+({{effective-values}}) include per-sample auxiliary information: a
+non-zero `per_sample_IV_size`, an effective subsample map, or
+both. Wire presence in the current header is irrelevant — under
+delta encoding every CENC field may be inherited from the in-group
+reference. The receiver reconstructs `senc`, `saiz`, and `saio`
+with the following pinned layouts; `saiz` and `saio` are never
+carried on the wire (see {{drm}}) and are recomputed here.
+
+When a protected chunk has no per-sample auxiliary information —
+`per_sample_IV_size` is 0 and there is no subsample map, as under
+`cbcs` full-sample encryption with a constant IV — none of the
+three boxes is emitted.
 
 **`senc`.** `version=0`. `flags = 0x000002`
-(`SubSampleEncryption`) iff any subsample map is carried (fields
-11, 13, 15 present), otherwise `flags = 0`. Layout:
-`sample_count = n`, then for each sample `i`:
+(`senc_use_subsamples`) iff the effective subsample map is
+present, otherwise `flags = 0`. Layout: `sample_count = n`, then
+for each sample `i`:
 
 - the `InitializationVector`, `per_sample_IV_size` bytes, taken
   from `sencInitializationVector` (field 9);
-- if subsamples are present, `subsample_count` (field 11) followed
-  by `subsample_count` pairs of `(BytesOfClearData` as `uint16`,
+- when `flags = 0x000002`: `subsample_count[i]` as `uint16` (from
+  field 11; 0 for a sample without subsamples), followed by
+  `subsample_count[i]` pairs of `(BytesOfClearData` as `uint16`,
   `BytesOfProtectedData` as `uint32)` drawn from fields 13 and 15,
-  flattened in chunk order.
+  flattened in chunk order. Every sample carries the
+  `subsample_count` field when the flag is set.
 
 **`saiz`.** `version=0`, `flags=0`; with `flags=0` the optional
-`aux_info_type` and `aux_info_type_parameter` fields are omitted (the
-`cenc` default, per {{CENC}} §7.1). For each sample,
-the auxiliary information size is:
+`aux_info_type` and `aux_info_type_parameter` fields are omitted —
+their defaults per {{CENC}} §7.1 are the track's protection scheme
+and 0. For each sample, the auxiliary information size is:
 
 ~~~
+aux_size[i] = per_sample_IV_size               ; flags = 0
 aux_size[i] = per_sample_IV_size
-            + (subsample_count[i] > 0
-                 ? 2 + 6 * subsample_count[i]
-                 : 0)
+            + 2 + 6 * subsample_count[i]       ; flags = 0x000002
 ~~~
 
-If all `aux_size[i]` are equal, set `default_sample_info_size` to
-that common value, `sample_count = n`, and emit an empty per-sample
-array. Otherwise set `default_sample_info_size = 0`, `sample_count
-= n`, and emit the `n`-entry `sample_info_size` array.
+so when the subsample flag is set, a sample with
+`subsample_count = 0` still counts its 2-byte `subsample_count`
+field, matching the `senc` layout above. An `aux_size[i]` above
+255 does not fit the 8-bit `sample_info_size` of {{ISOBMFF}} and
+the receiver MUST reject the chunk. If all `aux_size[i]` are
+equal, set `default_sample_info_size` to that common value,
+`sample_count = n`, and emit an empty per-sample array. Otherwise
+set `default_sample_info_size = 0`, `sample_count = n`, and emit
+the `n`-entry `sample_info_size` array.
 
 **`saio`.** `version=0`, `flags=0`, `entry_count=1`, with a single
-`offset` locating the first per-sample IV in `senc`. Per
+`offset` locating the first byte of the first sample's auxiliary
+information in `senc` (the first per-sample IV when
+`per_sample_IV_size > 0`). Per
 {{ISOBMFF}}, `saio` offsets in a movie fragment are relative to the
 same base as `trun.data_offset` — with `default-base-is-moof`
 ({{canonical-tfhd}}), the first byte of the `moof`. genBoxes
@@ -1389,6 +1407,10 @@ passing it onward, and in particular:
   `BytesOfProtectedData` value fits in 32 bits — the `senc` field
   widths of {{canonical-cenc}} — and MUST reject the chunk
   otherwise.
+- The receiver MUST verify that every sample's reconstructed
+  auxiliary-information size fits the 8-bit `saiz`
+  `sample_info_size` ({{canonical-cenc}}) and MUST reject the
+  chunk otherwise.
 - The receiver MUST reject the malformed sample-size cases listed
   in {{canonical-sizes}}.
 - The receiver MUST treat an unknown leading element_type as a
