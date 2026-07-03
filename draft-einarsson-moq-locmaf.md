@@ -831,6 +831,14 @@ genBox. Only boxes outside `moof` are carried as generic boxes (see
 the receiver recomputes them during canonical reconstruction (see
 {{drm}} and {{canonical}}).
 
+The CENC fields apply only to protected tracks. A receiver MUST
+reject a chunk that carries any of them (IDs 9, 11, 13, 15, 16) on
+a track whose CMAF Header does not signal protection
+(`tenc.default_isProtected = 1`): the reconstruction of
+{{canonical-cenc}} is defined only for protected tracks, so
+implementations could not otherwise agree on what such a chunk
+reconstructs to.
+
 ## Delta deletion marker {#deletion-marker}
 
 `deltaDeletedLocmafIDs` (ID 27) is a control field used only in a
@@ -976,10 +984,13 @@ Each emitted field's value is interpreted relative to its kind:
 | list (odd ID) | zigzag `vi64` per element, concatenated; element delta = `current[i] − previous[i]` | element-wise sum with the previous list |
 | raw bytes (odd ID) | full new bytes, verbatim | overwrite the previous bytes |
 
-The "previous value" for each field is the effective value used in
-the reconstruction of the previous LOCMAF chunk in the same group
-(or, after a mid-group full header, the previous chunk starting
-from that re-anchor).
+The "previous value" for each field is its value in the in-group
+reference state: the represented fields stored from the previous
+LOCMAF chunk in the same group (or, after a mid-group full header,
+from that re-anchor) — not the expanded effective values. A field
+absent from that state has previous value 0, so a delta header MAY
+introduce a field the previous chunk did not carry; the same rule
+applies per element to lists that grow (see below).
 
 ### List length changes
 
@@ -990,7 +1001,8 @@ in-group reference, changed only when a delta for ID 14 is present
 This covers `trunSampleDurations` (3),
 `trunSampleCompositionTimeOffsets` (5), `trunSampleFlags` (7), and
 `sencSubsampleCount` (11). `trunSampleSizes` (1) carries
-`trunSampleCount − 1` entries (see {{sample-size-derivation}}). The
+`trunSampleCount − 1` entries, or none when `trunSampleCount` is 0
+(see {{sample-size-derivation}}). The
 per-subsample lists (13, 15) have a total length equal to the sum
 of the new `sencSubsampleCount[i]`. Consequently the receiver knows
 `len(current)` for every list before parsing its bytes.
@@ -1434,8 +1446,11 @@ LOCMAF encoding is *canonical* when:
 
 - every full and delta header emits exactly the fields required by
   the emission rules of {{full-chunk}}, with no redundant fields;
-- every delta header carries exactly the fields whose effective
-  values changed from the in-group reference state, plus
+- every delta header carries exactly the fields whose represented
+  values changed from the in-group reference state — a list field
+  counts as changed when its length changes, even when the
+  surviving prefix is element-wise identical, so canonical encoding
+  never relies on inherited-list truncation alone — plus
   `deltaDeletedLocmafIDs` listing exactly the fields that leave
   that state ({{deletions}});
 - a full header appears only as the first moof-carrying Object of
@@ -1577,7 +1592,9 @@ passing it onward, and in particular:
   `sencSubsampleCount` totals) before allocating or copying.
 - The receiver MUST verify that the sum of reconstructed
   `sencBytesOfClearData` and `sencBytesOfProtectedData` for each
-  sample equals that sample's size.
+  sample with a non-zero subsample count equals that sample's size
+  (a sample whose subsample count is 0 carries no subsample map and
+  is unconstrained).
 - The receiver MUST verify that every reconstructed
   `BytesOfClearData` value fits in 16 bits and every
   `BytesOfProtectedData` value fits in 32 bits — the `senc` field
