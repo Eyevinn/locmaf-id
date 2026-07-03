@@ -119,8 +119,8 @@ therefore a media packaging, not a hop-by-hop transfer encoding, and
 not a transport — MOQT {{MOQT}} is the transport.
 
 This document specifies the LOCMAF Object encoding, the generic box
-element, the full and delta chunk encodings, the catalog signalling
-(deferred to {{CMSF}}), the canonical CMAF
+and raw-boxes elements, the full and delta chunk encodings, the
+catalog signalling (deferred to {{CMSF}}), the canonical CMAF
 reconstruction, and the DRM box round-trip. A reference
 implementation is available {{MOQLIVEMOCK}}. Worked examples and
 diagrams are published at {{LOCMAF-SITE}}.
@@ -160,15 +160,20 @@ MOQT group, MOQT object:
 : As defined in {{MOQT}}.
 
 LOCMAF Object:
-: A MOQT Object whose payload is a LOCMAF Object encoding: a sequence
-  of generic box elements (see below) and exactly one moof-header
-  element, followed by the `mdat` payload, as defined in
-  {{object-encoding}}.
+: A MOQT Object whose payload is a LOCMAF Object encoding: either a
+  sequence of generic box elements (see below) and exactly one
+  moof-header element, followed by the `mdat` payload, or a single
+  raw-boxes element, as defined in {{object-encoding}}.
 
 genBox:
 : A generic box element that carries one ISO BMFF box that sits
   outside `moof` in a CMAF chunk (for example `styp`, `prft`, `emsg`,
   or `uuid`). See {{genbox}}.
+
+rawBoxes:
+: A raw-boxes element that carries one or more complete ISO BMFF
+  boxes verbatim, including their box headers, as the entire payload
+  of a LOCMAF Object. See {{rawboxes}}.
 
 locmafHeader:
 : The single moof-header element of a LOCMAF Object. It carries the
@@ -211,15 +216,16 @@ a subgroup carries Objects of one group in ascending Object ID
 order on a single stream, while datagrams are unordered. A
 publisher MUST therefore send all Objects of a LOCMAF group in a
 single subgroup, and MUST NOT use the Datagram forwarding
-preference for LOCMAF tracks. Each group MUST begin with a full
-LOCMAF chunk so a subscriber tuning in at a group boundary has a
-complete reference (see {{element-sequence}}).
+preference for LOCMAF tracks. The first moof-carrying Object of
+each group MUST be a full LOCMAF chunk so a subscriber tuning in at
+a group boundary has a complete reference (see
+{{element-sequence}}).
 
 When a receiver detects that Objects are missing within a group — a
 gap in Object IDs, or a reset of the subgroup's stream — it MUST
 NOT apply subsequent delta chunks; it resumes either at the next
-full LOCMAF chunk in the same group or at the start of the next
-group.
+full LOCMAF chunk or rawBoxes Object ({{rawboxes}}) in the same
+group or at the start of the next group.
 
 # Catalog Signalling {#catalog}
 
@@ -378,8 +384,9 @@ receiver expands it back to CMAF.
 
 ## Element sequence and dispatch {#element-sequence}
 
-A LOCMAF Object payload is an ordered sequence of *elements*
-followed by the raw `mdat` payload:
+A LOCMAF Object payload takes one of two shapes. The first — the
+moof-carrying shape — is an ordered sequence of *elements* followed
+by the raw `mdat` payload:
 
 ~~~
 [ genBox ]*       zero or more pre-moof boxes, in reconstruction order
@@ -387,20 +394,28 @@ locmafHeader      exactly one: a full or delta moof header
 mdat raw payload  length = MOQT-object-len minus the elements above
 ~~~
 
-The `locmafHeader` marks where the `moof` sits in the reconstructed
-chunk: every `genBox` before it renders before the `moof`, and the
-`mdat` immediately follows the `moof`. The common case — no boxes
-outside the `moof` — is simply `locmafHeader` followed by `mdat`;
-`genBox` is purely additive.
+The second shape is a single raw-boxes element spanning the entire
+payload:
 
-Each element begins with an **element_type** `vi64`. Three element
+~~~
+rawBoxes          complete ISO BMFF boxes, verbatim ({{rawboxes}})
+~~~
+
+In the moof-carrying shape, the `locmafHeader` marks where the
+`moof` sits in the reconstructed chunk: every `genBox` before it
+renders before the `moof`, and the `mdat` immediately follows the
+`moof`. The common case — no boxes outside the `moof` — is simply
+`locmafHeader` followed by `mdat`; `genBox` is purely additive.
+
+Each element begins with an **element_type** `vi64`. Four element
 types are defined:
 
-| element_type | Symbol             | Meaning                                | Self-delimited by         |
-|:------------:|--------------------|----------------------------------------|---------------------------|
+| element_type | Symbol             | Meaning                                 | Delimited by              |
+|:------------:|--------------------|-----------------------------------------|---------------------------|
 | 1            | `genBox`           | one generic pre-`moof` box ({{genbox}}) | its own `box_size` field  |
-| 2            | `locmafFullHeader` | full moof header (absolute encoding)   | its `properties_length`   |
-| 3            | `locmafDeltaHeader`| delta moof header (in-group deltas)    | its `properties_length`   |
+| 2            | `locmafFullHeader` | full moof header (absolute encoding)    | its `properties_length`   |
+| 3            | `locmafDeltaHeader`| delta moof header (in-group deltas)     | its `properties_length`   |
+| 4            | `rawBoxes`         | complete boxes, verbatim ({{rawboxes}}) | the Object end (sole element) |
 
 The `mdat` payload carries no element_type tag — it is whatever
 bytes remain after the `locmafHeader`.
@@ -408,25 +423,29 @@ bytes remain after the `locmafHeader`.
 A receiver parses elements in a loop, reading element_type `vi64`
 values:
 
-1. While the element_type is `1`, it parses one `genBox` (delimited
+1. If the first element_type of the Object is `4`, the Object is a
+   single `rawBoxes` element ({{rawboxes}}) and the loop ends;
+   element_type `4` anywhere but first is malformed.
+2. While the element_type is `1`, it parses one `genBox` (delimited
    by its `box_size`, see {{genbox}}) and continues.
-2. When the element_type is `2` or `3`, it parses exactly one
+3. When the element_type is `2` or `3`, it parses exactly one
    `locmafHeader`, full or delta respectively (delimited by its
    `properties_length`, see {{full-chunk}} and {{delta-chunk}}).
    The bytes following that header's property block, to the end of
    the MOQT object, are the `mdat` payload.
 
-Exactly one header element MUST appear in a LOCMAF Object, and it
-MUST be the last element before the `mdat` payload. A `genBox` that
-follows the header is malformed.
+Exactly one header element MUST appear in a moof-carrying LOCMAF
+Object, and it MUST be the last element before the `mdat` payload.
+A `genBox` that follows the header is malformed.
 
 The full-vs-delta distinction is signalled exclusively by the
 header element_type (`2` for full, `3` for delta), never by the
 MOQT object position within a group:
 
-1. The first object of every MOQT group MUST carry a
+1. The first moof-carrying object of every MOQT group MUST carry a
    `locmafFullHeader`, so a subscriber tuning in at a group
-   boundary has a complete reference.
+   boundary has a complete reference. The only objects that may
+   precede it in the group are rawBoxes Objects ({{rawboxes}}).
 2. The encoder MAY emit a `locmafFullHeader` at any object position
    within a group, not only at object index 0. A mid-group full
    chunk re-anchors the in-group reference for subsequent delta
@@ -435,12 +454,16 @@ MOQT object position within a group:
    its in-group delta state and treat the new full chunk as the
    reference for any following `locmafDeltaHeader` objects in the
    group.
-4. The receiver MUST dispatch on the header element_type alone. It
+4. A rawBoxes Object likewise resets the in-group delta state; the
+   next moof-carrying object in the group MUST carry a
+   `locmafFullHeader` (see {{rawboxes}}).
+5. The receiver MUST dispatch on the header element_type alone. It
    MUST NOT infer "full" from object index 0 or "delta" from object
    index greater than 0.
 
-An element_type other than `1`, `2`, or `3` is not self-delimiting,
-so a receiver cannot skip it. A receiver that reads an unrecognised
+An element_type not defined in the table above is not
+self-delimiting, so a receiver cannot skip it. A receiver that
+reads an unrecognised
 leading element_type MUST treat the Object as malformed and reject
 it; there is no generic skip for unknown top-level elements. This
 hard failure is deliberate: an element one receiver silently
@@ -599,8 +622,10 @@ entire remainder of the element — mirroring ISOBMFF, where a box's
 counts its own 4 bytes). The element on the wire is therefore
 `1 | box_size | box_name(4) | payload(box_size − 4)` and is fully
 self-delimited by `box_size`; a `box_size` less than 4 is
-malformed. Every element thus shares the same `type | length |
-body` shape, so the length field alone delimits any element.
+malformed. Every element that other elements may follow — `genBox`
+and the two headers — thus shares the same `type | length | body`
+shape, so the length field alone delimits it; only `rawBoxes`,
+which nothing ever follows, carries no length ({{rawboxes}}).
 
 The `payload` is the box contents that would follow the 8-byte ISO
 box header (`size` + `type`). For a `uuid` box, the 16-byte
@@ -656,6 +681,75 @@ carried verbatim — LOCMAF re-encodes no fields.
 The set of box types carried as `genBox`es is open: any box outside
 the `moof` is carried under its ISO `box_name` FourCC, which is
 self-describing and needs no LOCMAF identifier allocation.
+
+# Raw Boxes (rawBoxes) {#rawboxes}
+
+A `rawBoxes` element carries one or more complete ISO BMFF boxes
+verbatim — box headers included — as the entire payload of a LOCMAF
+Object. Where a `genBox` carries one pre-`moof` box alongside a
+`locmafHeader`, a `rawBoxes` element replaces the header and `mdat`
+entirely: it is the escape from the moof-header model for content
+that LOCMAF does not otherwise carry. Two uses motivate it:
+
+- **In-band CMAF Header.** In self-framed carriage
+  ({{outside-moqt}}), a leading rawBoxes Object holds the `ftyp` +
+  `moov` bytes, so a stored LOCMAF segment is self-contained and
+  the initialisation bytes round-trip exactly.
+- **Verbatim chunk carriage.** A chunk whose `moof` uses structures
+  outside the LOCMAF field model rides verbatim, at plain-CMAF
+  cost, without forcing the whole track onto plain CMAF packaging.
+
+## Byte layout
+
+A `rawBoxes` element is, in order:
+
+~~~
+element_type   vi64                 = 4 (rawBoxes)
+boxes          all remaining bytes  complete ISO BMFF boxes, verbatim
+~~~
+
+`element_type` is a `vi64`. `boxes` is the concatenation of one or
+more complete ISO BMFF boxes {{ISOBMFF}}, each starting with its
+own box header, spanning the entire remainder of the Object; the
+box sizes MUST sum to exactly that remainder. A `rawBoxes` element
+carries no length field of its own: it is always the sole element
+of its Object (see below), so the Object length — supplied by MOQT,
+or by the `object_length` prefix in self-framed carriage
+({{outside-moqt}}) — delimits it, exactly as it delimits the
+untagged `mdat` payload of a moof-carrying Object. The ISO `size`
+escape values 0 (box extends to end of file) and 1 (64-bit
+`largesize` follows) are not allowed: every box in `boxes` MUST
+carry its actual size in the 32-bit `size` field. An empty `boxes`
+is malformed.
+
+## Sole element of its Object
+
+A `rawBoxes` element MUST be the only element of its LOCMAF Object:
+element_type `4` MUST appear first in the Object payload, and a
+receiver MUST reject an Object in which it appears after another
+element. A rawBoxes Object carries no `genBox`, no `locmafHeader`,
+and no `mdat` payload. Restricting rawBoxes to whole Objects keeps
+the representation unambiguous — a pre-`moof` box accompanying a
+moof header has exactly one carrier, `genBox`, so canonical
+comparison ({{canonical}}) never reconciles two encodings of the
+same chunk — and is what lets the element drop its length field.
+
+## Delta-state reset
+
+A rawBoxes Object resets the in-group delta chain. On receiving
+one, the receiver MUST discard its in-group reference state; the
+next moof-header element in the same group MUST be a full header,
+and a receiver MUST reject a `locmafDeltaHeader` that follows a
+rawBoxes Object without an intervening `locmafFullHeader`. This
+rule keeps receivers writer-only: deriving delta state from `boxes`
+would require parsing a `moof` out of the raw bytes, which
+reconstruction never otherwise needs.
+
+## Reconstruction
+
+The reconstructed bytes of a rawBoxes Object are `boxes`, verbatim.
+This is also its canonical form ({{canonical}}): no normalisation
+is applied, and canonical comparison is plain byte equality.
 
 # Field Reference {#field-ref}
 
@@ -760,8 +854,9 @@ elements ahead of the header (see {{genbox}}); the `mdat` payload
 follows the header's property block unchanged.
 
 In a full header, values are absolute, encoded per {{parity}}. The
-full header MUST begin every MOQT group so a subscriber tuning in
-at a group boundary has a complete in-group reference.
+first moof-carrying Object of every MOQT group MUST carry a full
+header so a subscriber tuning in at a group boundary has a
+complete in-group reference (see {{element-sequence}}).
 
 ## Emission rules
 
@@ -1065,6 +1160,10 @@ follows this section produces **byte-identical** output. That
 byte-identical output is the *canonical form* and is the reference
 used for conformance and golden-vector comparison.
 
+A rawBoxes Object ({{rawboxes}}) needs no rebuild: its canonical
+form is its `boxes` bytes, verbatim. The remainder of this section
+applies to moof-carrying Objects.
+
 Because the canonical form is a function of the effective values
 alone, it is invariant to every encoder representation choice:
 where the group was split into full and delta chunks, field
@@ -1328,8 +1427,9 @@ LOCMAF encoding is *canonical* when:
   values changed from the in-group reference state, plus
   `deltaDeletedLocmafIDs` listing exactly the fields that leave
   that state ({{deletions}});
-- a full header appears only as the first Object of each group or
-  where {{bmdt-derivation}} requires one;
+- a full header appears only as the first moof-carrying Object of
+  each group, immediately after a rawBoxes Object ({{rawboxes}}),
+  or where {{bmdt-derivation}} requires one;
 - field IDs appear in ascending order; and
 - every `vi64` uses its shortest form.
 
@@ -1405,16 +1505,21 @@ object_length   vi64
 LOCMAF Object   object_length bytes
 ~~~
 
-repeated once per Object. The first Object of a segment carries a
-full header, exactly as at a MOQT group boundary, and delta chunks
-reference the preceding Object in the same segment
+repeated once per Object. The first moof-carrying Object of a
+segment carries a full header, exactly as at a MOQT group boundary,
+and delta chunks reference the preceding Object in the same segment
 ({{delta-chunk}}).
 
 The same framing doubles as a storage format. A LOCMAF segment is
 directly a file on disk, and segments concatenate into longer
 files that remain parseable, since every Object is length-prefixed
-and every full header re-anchors decoding; the CMAF Header is
-stored alongside, as for CMAF initialisation and media segments.
+and every full header re-anchors decoding. The CMAF Header is
+either stored alongside, as for CMAF initialisation and media
+segments, or carried in-band as a leading length-prefixed rawBoxes
+Object ({{rawboxes}}) holding the `ftyp` + `moov` bytes verbatim.
+The in-band form makes the file self-contained: a reader obtains
+the initialisation bytes exactly as published and decodes every
+subsequent Object against them, just as over MOQT.
 
 The framing also maps directly onto low-latency HTTP delivery:
 
@@ -1482,6 +1587,14 @@ length `4 + box_size`; the receiver MUST ensure `box_size` is at
 least 4, at most `0xFFFFFFFB`, and does not exceed the bytes
 actually present in the element, and MUST validate the wrapped box
 against the structural rules for its `box_name` before use.
+
+A rawBoxes element's `boxes` content ({{rawboxes}}) is likewise
+attacker-influenceable and is passed onward verbatim. Before use,
+the receiver MUST verify that it parses as a sequence of complete
+top-level boxes — each declared `size` at least 8, neither ISO
+`size` escape used, and the sizes summing to exactly the Object
+bytes that follow the element_type — and MUST validate each box
+against the structural rules for its type.
 
 Replay considerations within a MOQT group are inherited from
 {{MOQT}}; LOCMAF adds no new replay attack surface.
