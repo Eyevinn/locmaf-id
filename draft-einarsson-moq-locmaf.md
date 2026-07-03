@@ -499,7 +499,7 @@ IANA-registered.
 Parity governs *framing*: it tells a receiver how far every tuple
 extends, whether or not it recognises the field ID. The
 interpretation of the value bytes is per-field ({{field-ref}}).
-Four fields deviate from the absolute-in-full / delta-in-delta
+Three fields deviate from the absolute-in-full / delta-in-delta
 value encoding above:
 
 - `trunSampleCompositionTimeOffsets` (ID 5): elements are zigzag
@@ -509,13 +509,14 @@ value encoding above:
   decode-time relation non-monotonic.
 - `sencInitializationVector` (ID 9): opaque raw bytes, carried
   verbatim in both contexts (overwrite, never a delta).
-- `tfdtBaseMediaDecodeTime` (ID 10): when present in a delta
-  header, an absolute unsigned `vi64` rather than a zigzag delta —
-  an explicit re-anchor of the derivation chain (see
-  {{bmdt-derivation}}).
 - `deltaDeletedLocmafIDs` (ID 27): delta-only control list whose
   elements are plain unsigned `vi64` field IDs, never zigzag (see
   {{deletion-marker}}).
+
+Two fields are additionally restricted to one header kind:
+`tfdtBaseMediaDecodeTime` (ID 10) appears only in full headers — a
+delta chunk's BMDT is always derived (see {{bmdt-derivation}}) —
+and `deltaDeletedLocmafIDs` (ID 27) appears only in delta headers.
 
 A receiver that encounters a field ID not defined in this document
 MUST skip its value using the parity rule — one `vi64` for an even
@@ -911,23 +912,22 @@ follows:
 
 ## `tfdt` BMDT derivation {#bmdt-derivation}
 
-The receiver normally derives the new BMDT as `previous_bmdt`
+The receiver derives a delta chunk's BMDT as `previous_bmdt`
 plus the sum of the previous chunk's *effective* sample durations
 (the per-sample values when present, else `sample_count` times the
-applicable default), so `tfdtBaseMediaDecodeTime` (ID 10) is absent
-from a delta header in the steady state. This is safe because CMAF ({{CMAF}})
-requires the decode timeline to be contiguous: each fragment's
-`baseMediaDecodeTime` equals the previous fragment's plus the sum
-of its sample durations.
+applicable default). `tfdtBaseMediaDecodeTime` (ID 10) is a
+full-header field: it MUST NOT appear in a delta header, and a
+receiver MUST reject a delta header that carries it. The
+derivation is safe because CMAF ({{CMAF}}) requires the decode
+timeline to be contiguous: each fragment's `baseMediaDecodeTime`
+equals the previous fragment's plus the sum of its sample
+durations.
 
-When the source BMDT diverges from this derivation (audio pre-roll,
-splicing, stream re-anchor), the encoder MUST emit
-`tfdtBaseMediaDecodeTime` in the delta header as an **absolute
-unsigned `vi64`** — the same encoding as in a full header, not a
-zigzag delta. The receiver checks for the field first and, when
-present, uses its value as the absolute BMDT in place of the
-derivation. An encoder beginning a fresh derivation chain mid-group
-re-anchors with this absolute override.
+When the source BMDT diverges from this derivation (a splice, a
+capture gap, a stream re-anchor), the encoder MUST emit a full
+LOCMAF chunk ({{full-chunk}}): a timeline discontinuity re-anchors
+the entire in-group reference, which is also what a recovering or
+late-joining receiver needs at exactly that point.
 
 ## Deletions {#deletions}
 
@@ -1032,21 +1032,22 @@ LOCMAF supports event-only tracks with no further extension. A full
 header for an event-only group sets `trunSampleCount = 0`, carries
 `tfdtBaseMediaDecodeTime`, is preceded by the chunk's `emsg`
 genBoxes, and is followed by an empty `mdat` payload (the receiver
-reconstructs an `mdat` box with an 8-byte header only). Subsequent
-chunks in the same group use a delta header. Two encoder strategies
-are valid:
+reconstructs an `mdat` box with an 8-byte header only). Two
+encoder strategies are valid for subsequent chunks in the same
+group:
 
-1. **Absolute BMDT per chunk.** The delta header emits
-   `tfdtBaseMediaDecodeTime` explicitly as an absolute override
-   (see {{bmdt-derivation}}), because a zero sample count produces
-   no derivation increment. This costs one extra `vi64` per chunk
-   and is recommended for sparse event-only tracks.
+1. **Full header per chunk.** Every event chunk carries a full
+   header with `trunSampleCount = 0` and its absolute
+   `tfdtBaseMediaDecodeTime`, since a zero sample count produces
+   no derivation increment ({{bmdt-derivation}}). This costs a few
+   bytes per chunk and is recommended for sparse event-only
+   tracks.
 2. **Synthetic per-chunk sample.** The encoder sets
    `trunSampleCount = 1` with a `default_sample_duration` equal to
    the intended per-chunk advancement and a zero-size sample. BMDT
-   derivation then works without an override. This matches how
-   DASH-IF Ingest commonly shapes sparse metadata tracks (`urim`,
-   `stpp`).
+   derivation then works, and subsequent chunks use delta headers.
+   This matches how DASH-IF Ingest commonly shapes sparse metadata
+   tracks (`urim`, `stpp`).
 
 For new MOQT deployments, an MSF `eventtimeline` companion track
 {{MSF}} is the preferred mechanism for event metadata. LOCMAF
@@ -1167,8 +1168,8 @@ flag-bit order.
 ## tfdt
 
 `version=1` always (64-bit `baseMediaDecodeTime`), `flags=0`. The
-value is the absolute BMDT — derived per {{bmdt-derivation}} or
-taken from the absolute override when one is present. A fixed
+value is the absolute BMDT — carried in a full header, or derived
+per {{bmdt-derivation}} for a delta chunk. A fixed
 version avoids a magnitude-dependent conditional in the canonical
 form, and live decode timelines routinely exceed 32 bits anyway
 (2^32 ticks is under 14 hours at a 90 kHz timescale, and
@@ -1325,7 +1326,8 @@ LOCMAF encoding is *canonical* when:
   values changed from the in-group reference state, plus
   `deltaDeletedLocmafIDs` listing exactly the fields that leave
   that state ({{deletions}});
-- a full header appears only as the first Object of each group;
+- a full header appears only as the first Object of each group or
+  where {{bmdt-derivation}} requires one;
 - field IDs appear in ascending order; and
 - every `vi64` uses its shortest form.
 
