@@ -811,7 +811,7 @@ source `moof`s yield the same emitted fields.
 : emit iff `senc` is present AND `per_sample_IV_size ≠ tenc.default_Per_Sample_IV_Size`.
 
 `sencInitializationVector` (9)
-: emit iff `senc` is present AND `per_sample_IV_size > 0` AND the samples carry IVs that are not derivable by the counter rule (see {{cenc-iv}}).
+: emit iff `senc` is present AND `per_sample_IV_size > 0`.
 
 `sencSubsampleCount` (11), `sencBytesOfClearData` (13), `sencBytesOfProtectedData` (15)
 : emit iff `senc` is present AND the samples carry subsample maps.
@@ -981,28 +981,23 @@ any CENC {{CENC}} protection scheme; the scheme itself is
 identified by `tenc.default_isProtected = 1` and the four-character
 `scheme_type` of the surrounding `schm` box, both carried in the
 CMAF Header, and the reconstruction of {{canonical-cenc}} does not
-depend on it. Two schemes have scheme-specific behaviour:
+depend on it. Schemes with per-sample initialization vectors
+(`cenc`, `cbc1`, `cens`) carry them explicitly in
+`sencInitializationVector` (ID 9) on every chunk; LOCMAF defines
+no IV derivation or prediction rule.
 
-- `cenc` (AES-128-CTR): per-sample initialization vectors, limited
-  to 8 bytes by CMAF ({{CMAF}} §8.2.3.1), are carried via
-  `sencInitializationVector` (ID 9); their omission is permitted
-  under the counter rule of {{cenc-iv}}.
-- `cbcs` (AES-128-CBC subsample pattern encryption): the constant
-  initialization vector (`tenc.default_constant_IV`) and the
-  pattern (`default_crypt_byte_block` / `default_skip_byte_block`)
-  travel in the CMAF Header ({{CENC}} §10.4). No per-sample IV
-  appears in `senc`: `per_sample_IV_size` is 0,
-  `sencInitializationVector` (ID 9) is empty and
-  `sencPerSampleIVSize` (ID 16) is 0 or omitted; the reconstructed
-  `senc` still sets `flags = 0x000002` and carries the subsample
-  map.
+One scheme has scheme-specific behaviour. Under `cbcs` (AES-128-CBC
+subsample pattern encryption), the constant initialization vector
+(`tenc.default_constant_IV`) and the pattern
+(`default_crypt_byte_block` / `default_skip_byte_block`) travel in
+the CMAF Header ({{CENC}} §10.4). No per-sample IV appears in
+`senc`: `per_sample_IV_size` is 0, `sencInitializationVector`
+(ID 9) is empty and `sencPerSampleIVSize` (ID 16) is 0 or omitted;
+the reconstructed `senc` still sets `flags = 0x000002` and carries
+the subsample map.
 
-Any other scheme, including `cbc1` and `cens`, carries its
-per-sample IVs explicitly in `sencInitializationVector` (ID 9) on
-every chunk; the counter rule of {{cenc-iv}} applies to `cenc`
-only. In practice, CMAF presentation profiles ({{CMAF}} Annex A)
-and the deployed DRM ecosystem {{DASHIF-ECCP}} use `cenc` and
-`cbcs`.
+In practice, CMAF presentation profiles ({{CMAF}} Annex A) and the
+deployed DRM ecosystem {{DASHIF-ECCP}} use `cenc` and `cbcs`.
 
 ## Box handling
 
@@ -1021,39 +1016,6 @@ them MUST use plain CMAF packaging:
 | `sgpd` / `sbgp` | Mid-fragment key rotation via `seig` sample groups is out of scope; KID changes MUST align with fragment boundaries (see {{scope}}). |
 | `pssh` (per-fragment) | License-acquisition information is signalled via the CMSF `contentProtections` mechanism (see {{catalog}}), per {{CMAF}} §7.4.3. |
 | `subs` | Sub-sample information for image subtitle profiles (e.g. `im1i`) is out of scope. |
-
-## CENC IV counter prediction (optional) {#cenc-iv}
-
-For the `cenc` scheme, CMAF ({{CMAF}} §8.2.3.1) limits the
-per-sample initialization vector to 8 bytes: the 8-byte IV is the
-high half of the 128-bit AES counter, the low half is a per-sample
-block counter that starts at zero for each sample, and successive
-per-sample IVs increment the 8-byte value by one per sample
-({{CENC}} §9.2).
-
-The IV anchor is carried on the first full chunk of the track, so
-when the source follows this rule the receiver can derive every
-subsequent per-sample IV deterministically.
-
-LOCMAF permits encoders to omit `sencInitializationVector` (ID 9)
-when the source follows this counter rule, and requires receivers
-to support derivation:
-
-- An encoder MAY omit `sencInitializationVector` on full and delta
-  chunks when every per-sample IV in the chunk matches the value
-  derived by incrementing the previous chunk's final IV by one per
-  sample.
-- A receiver MUST be able to derive per-sample IVs by this rule.
-  When `sencInitializationVector` is absent and the scheme is
-  `cenc`, the receiver advances the running IV counter and uses
-  the derived value.
-- When the source diverges from the rule (random IVs, a mid-track
-  counter restart, or any non-conformant strategy), the encoder
-  MUST emit `sencInitializationVector` for every affected sample.
-
-Counter prediction applies to `cenc` only; every other scheme
-carries its per-sample IVs explicitly, and `cbcs` has none (see
-{{drm}}).
 
 # Event-Only Tracks {#event-only}
 
@@ -1121,9 +1083,8 @@ both produced the canonical form.
 ## Effective values {#effective-values}
 
 Decoding a chunk — applying deltas and deletions to the in-group
-reference, then the derivations of {{sample-size-derivation}},
-{{bmdt-derivation}}, and {{cenc-iv}} — yields the chunk's
-*effective values*:
+reference, then the derivations of {{sample-size-derivation}} and
+{{bmdt-derivation}} — yields the chunk's *effective values*:
 
 - `n = trunSampleCount` and the BMDT;
 - the effective sample-description index: field 2 when present,
@@ -1136,8 +1097,8 @@ reference, then the derivations of {{sample-size-derivation}},
     when present and `i == 0`; else field 8 when present; else
     `trex.default_sample_flags`;
   - `cto[i]`: field 5's element `i` when present, else 0;
-  - when CENC is in use: `IV[i]` (field 9, or the counter rule of
-    {{cenc-iv}}) and the subsample map (fields 11, 13, 15);
+  - when CENC is in use: `IV[i]` (field 9) and the subsample map
+    (fields 11, 13, 15);
 - the ordered genBox list (see {{genbox}}) and the `mdat` payload
   `P`, whose length is the MOQT object length minus the bytes
   consumed by all preceding elements.
@@ -1294,8 +1255,7 @@ layouts. `saiz` and `saio` are never carried on the wire (see
 `sample_count = n`, then for each sample `i`:
 
 - the `InitializationVector`, `per_sample_IV_size` bytes, taken
-  from `sencInitializationVector` (field 9) or derived by the CENC
-  counter rule of {{cenc-iv}};
+  from `sencInitializationVector` (field 9);
 - if subsamples are present, `subsample_count` (field 11) followed
   by `subsample_count` pairs of `(BytesOfClearData` as `uint16`,
   `BytesOfProtectedData` as `uint32)` drawn from fields 13 and 15,
@@ -1429,9 +1389,6 @@ passing it onward, and in particular:
   `BytesOfProtectedData` value fits in 32 bits — the `senc` field
   widths of {{canonical-cenc}} — and MUST reject the chunk
   otherwise.
-- The receiver MUST verify that a derived CENC IV counter
-  ({{cenc-iv}}) stays within the `per_sample_IV_size` range and
-  MUST reject a chunk that would advance it past that range.
 - The receiver MUST reject the malformed sample-size cases listed
   in {{canonical-sizes}}.
 - The receiver MUST treat an unknown leading element_type as a
@@ -1443,10 +1400,6 @@ length `4 + box_size`; the receiver MUST ensure `box_size` is at
 least 4, at most `0xFFFFFFFB`, and does not exceed the bytes
 actually present in the element, and MUST validate the wrapped box
 against the structural rules for its `box_name` before use.
-
-The CENC IV counter-prediction optimisation ({{cenc-iv}}) does not
-disclose key material and produces the same IV stream a conformant
-encoder would have transmitted; it does not weaken CENC.
 
 Replay considerations within a MOQT group are inherited from
 {{MOQT}}; LOCMAF adds no new replay attack surface.
