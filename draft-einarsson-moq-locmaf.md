@@ -939,6 +939,8 @@ elements). The receiver MUST derive sample sizes as follows:
   `trex.default_sample_size` is never consulted at `n == 1`.
 - Else if `trex.default_sample_size` is non-zero, all `n` samples
   have that size.
+- Else if `P == 0`, all `n` samples have size 0 (e.g. an event
+  track carrying several zero-size samples per chunk).
 - Else the chunk is malformed and the receiver MUST reject it.
 
 Correspondingly, when `sample_count == 1` both `trunSampleSizes`
@@ -1308,18 +1310,27 @@ composition-time offset is a signed 32-bit value; when
 `trun.version == 0` it is unsigned (reached only when every offset
 is ≥ 0).
 
+When `n == 0` (an event-only chunk, {{event-only}}) there are no
+effective per-sample values: every conditional `tr_flags` bit above
+is clear, no per-sample records are emitted, and no optional `tfhd`
+default is present ({{canonical-tfhd}}).
+
 ### Canonical sample-size layout {#canonical-sizes}
 
 Let `n = trunSampleCount` and `P = len(mdat payload)`.
 
-- **Uniform sizes.** If all `n` samples share a single size `s`,
-  place `s` in `tfhd.default_sample_size` (set its flag per
-  {{canonical-tfhd}} iff `s ≠ trex.default_sample_size`; if `s` equals
-  `trex.default_sample_size` and `n > 1`, omit it from `tfhd` and
-  rely on `trex`). Emit no per-sample sizes in `trun` and clear
-  `sample-size-present`. When `n == 1` the lone sample's size is
-  `P` and is **not** emitted anywhere — neither as a `tfhd` default
-  nor in `trun`; the receiver derives it as `P`.
+- **Uniform sizes** (all `n` samples share a single size `s`; a
+  single-sample chunk is trivially uniform with `s = P`). Place `s`
+  in `tfhd.default_sample_size` and set its flag per
+  {{canonical-tfhd}} iff `s ≠ trex.default_sample_size`; when `s`
+  equals `trex.default_sample_size`, omit it from `tfhd` and rely
+  on `trex`. Emit no per-sample sizes in `trun` and clear
+  `sample-size-present`. Note that while the wire omits a single
+  sample's size ({{sample-size-derivation}}), the canonical CMAF
+  chunk MUST still carry it whenever it differs from the `trex`
+  default: ISO BMFF has no rule deriving a sample size from the
+  `mdat` length, so a chunk without it would not be
+  decode-equivalent.
 - **Varying sizes** (`n > 1`, sizes differ). Emit per-sample sizes
   in `trun` and set `sample-size-present`; do **not** set
   `tfhd.default_sample_size`. On the wire LOCMAF carries `n − 1`
