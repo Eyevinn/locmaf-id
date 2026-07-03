@@ -838,11 +838,13 @@ elements). The receiver MUST derive sample sizes as follows:
   in this chunk.
 - Else if `tfhdDefaultSampleSize` (ID 6) is present, all `n`
   samples have that size.
+- Else if `n == 1`, the lone sample's size is `P`. The encoder
+  omits all size fields for a single-sample chunk (see below), so
+  the payload length is authoritative and
+  `trex.default_sample_size` is never consulted at `n == 1`.
 - Else if `trex.default_sample_size` is non-zero, all `n` samples
   have that size.
-- Else, when `n == 1`, the lone sample's size is `P`. When `n > 1`
-  and no size information is available, the chunk is malformed and
-  the receiver MUST reject it.
+- Else the chunk is malformed and the receiver MUST reject it.
 
 Correspondingly, when `sample_count == 1` both `trunSampleSizes`
 and `tfhdDefaultSampleSize` MUST be omitted — the single sample's
