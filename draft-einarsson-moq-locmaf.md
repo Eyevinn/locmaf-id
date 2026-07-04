@@ -250,7 +250,7 @@ field, following the field-definition conventions of {{MSF}}:
 |----------------|-----------------|----------|-------------|-----------|
 | LOCMAF version | `locmafVersion` | T        | Conditional | String    |
 
-`locmafVersion` identifies the LOCMAF wire-format version of the
+`locmafVersion` identifies the LOCMAF packaging version of the
 track. It MUST be present when `packaging` is `"locmaf"` and MUST
 NOT be present otherwise. The version specified by this document
 is `"0.3"`. A receiver MUST NOT subscribe to a LOCMAF track whose
