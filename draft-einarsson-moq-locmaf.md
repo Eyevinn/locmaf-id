@@ -609,10 +609,12 @@ Only boxes outside the `moof` are `genBox`es.
 A `genBox` element is, in order:
 
 ~~~
-element_type   vi64      = 1 (genBox)
-box_size       vi64      length in bytes of `box_name` + `payload`
-box_name       4 bytes   the ISO box type FourCC ('styp','emsg','prft','uuid', ...)
-payload        box_size − 4 bytes   the box contents WITHOUT the 8-byte ISO box header
+element_type  vi64                = 1 (genBox)
+box_size      vi64                length in bytes of box_name + payload
+box_name      4 bytes             the ISO box type FourCC
+                                  ('styp','emsg','prft','uuid', ...)
+payload       box_size − 4 bytes  the box contents WITHOUT the
+                                  8-byte ISO box header
 ~~~
 
 `element_type` and `box_size` are `vi64` values. `box_size` covers
@@ -769,25 +771,25 @@ box. The field IDs are identical across full and delta headers;
 only the value encoding differs (absolute in a full header, delta
 in a delta header — see {{full-chunk}} and {{delta-chunk}}).
 
-| ID | Symbol | Source `moof` field | Kind |
-|---:|--------|---------------------|------|
-| 1 | `trunSampleSizes` | `trun.sample[i].sample_size` | list |
-| 2 | `tfhdSampleDescriptionIndex` | `tfhd.sample_description_index` | scalar |
-| 3 | `trunSampleDurations` | `trun.sample[i].sample_duration` | list |
-| 4 | `tfhdDefaultSampleDuration` | `tfhd.default_sample_duration` | scalar |
-| 5 | `trunSampleCompositionTimeOffsets` | `trun.sample[i].sample_composition_time_offset` | signed list ‡ |
-| 6 | `tfhdDefaultSampleSize` | `tfhd.default_sample_size` | scalar |
-| 7 | `trunSampleFlags` | `trun.sample[i].sample_flags` | list |
-| 8 | `tfhdDefaultSampleFlags` | `tfhd.default_sample_flags` | scalar |
-| 9 | `sencInitializationVector` | `senc.sample[i].InitializationVector` | raw bytes |
-| 10 | `tfdtBaseMediaDecodeTime` | `tfdt.baseMediaDecodeTime` | scalar |
-| 11 | `sencSubsampleCount` | `senc.sample[i].subsample_count` | list |
-| 12 | `trunFirstSampleFlags` | `trun.first_sample_flags` | scalar |
-| 13 | `sencBytesOfClearData` | `senc.sample[i].subsample[j].BytesOfClearData` | list |
-| 14 | `trunSampleCount` | `trun.sample_count` | scalar |
-| 15 | `sencBytesOfProtectedData` | `senc.sample[i].subsample[j].BytesOfProtectedData` | list |
-| 16 | `sencPerSampleIVSize` | `senc.per_sample_IV_size` | scalar |
-| 27 | `deltaDeletedLocmafIDs` | (none — control) | list |
+| ID | Symbol | Kind |
+|---:|--------|------|
+| 1 | `trunSampleSizes` | list |
+| 2 | `tfhdSampleDescriptionIndex` | scalar |
+| 3 | `trunSampleDurations` | list |
+| 4 | `tfhdDefaultSampleDuration` | scalar |
+| 5 | `trunSampleCompositionTimeOffsets` | signed list ‡ |
+| 6 | `tfhdDefaultSampleSize` | scalar |
+| 7 | `trunSampleFlags` | list |
+| 8 | `tfhdDefaultSampleFlags` | scalar |
+| 9 | `sencInitializationVector` | raw bytes |
+| 10 | `tfdtBaseMediaDecodeTime` | scalar |
+| 11 | `sencSubsampleCount` | list |
+| 12 | `trunFirstSampleFlags` | scalar |
+| 13 | `sencBytesOfClearData` | list |
+| 14 | `trunSampleCount` | scalar |
+| 15 | `sencBytesOfProtectedData` | list |
+| 16 | `sencPerSampleIVSize` | scalar |
+| 27 | `deltaDeletedLocmafIDs` | list |
 
 ‡ Signed: elements are zigzag `vi64` values (see {{zigzag}}) in
 both full and delta context (see {{parity}}).
