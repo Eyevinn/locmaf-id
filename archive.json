@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-02T00:48:56.665623+00:00",
+  "timestamp": "2026-07-05T00:42:23.592938+00:00",
   "repo": "Eyevinn/locmaf-id",
   "labels": [
     {
@@ -50,5 +50,34 @@
     }
   ],
   "issues": [],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOSnnm3c7tmfYI",
+      "title": "LOCMAF v0.3: genBox + full/delta header redesign",
+      "url": "https://github.com/Eyevinn/locmaf-id/pull/1",
+      "state": "MERGED",
+      "author": "tobbee",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "## What\n\nReworks the draft around a self-delimiting element sequence \u2014 zero or more `genBox` elements (any box outside `moof`: `styp`, `prft`, `emsg`, `uuid`, carried verbatim), exactly one full or delta `moof` header, then the raw `mdat` payload \u2014 and bumps `locmafVersion` to `\"0.3\"`.\n\n## Highlights\n\n- **Integer notation**: MOQT vi64 (Section 1.4.1) throughout; signed values as zigzag vi64. Full 32-bit `sample_flags` carried (compact 5-bit form dropped).\n- **Canonical CMAF reconstruction** defined as a function of *effective values* (not wire presence), plus a canonical encoding for encode-side golden vectors. `saio` offsets are moof-relative, version 0; reconstructed boxes never need 64-bit sizes. CENC `senc`/`saiz`/`saio` reconstruction cross-checked against ISO/IEC 23001-7:2023 and Bento4.\n- **Simpler DRM**: scheme-agnostic (`cbc1`/`cens` carried with explicit IVs); the cenc IV counter-prediction rule is dropped \u2014 per-sample IVs are always explicit; `cbcs` (constant IV) remains the only scheme-specific case.\n- **Simpler timeline handling**: delta headers never carry an absolute `tfdtBaseMediaDecodeTime`; a BMDT discontinuity re-anchors with a mid-group full header. Parity exceptions drop from four to three.\n- **Transport rules**: one subgroup per group, no datagram forwarding, delta state resets on gaps.\n- **Catalog**: `locmaf` packaging is signaled in CMSF catalogs only, mirroring `cmaf`, with a conditional `locmafVersion` track field.\n- **New informative section**: minimal self-framing for use outside MOQT (vi64 length-prefixed Objects) covering on-disk storage, LL-DASH, and LL-HLS parts.\n- Consumption described generically via chunk and frame interfaces; single author, with Hugo Bj\u00f6rs credited in the acknowledgments.",
+      "createdAt": "2026-07-03T13:19:40Z",
+      "updatedAt": "2026-07-03T13:54:56Z",
+      "baseRepository": "Eyevinn/locmaf-id",
+      "baseRefName": "main",
+      "baseRefOid": "03c9d12d64156764c85c17cf609d04534e8d6e9d",
+      "headRepository": "Eyevinn/locmaf-id",
+      "headRefName": "locmaf-v0.3",
+      "headRefOid": "0697f9f78d40b81abbc23f66596f095c6b72f45b",
+      "closedAt": "2026-07-03T13:54:56Z",
+      "mergedAt": "2026-07-03T13:54:55Z",
+      "mergedBy": "tobbee",
+      "mergeCommit": {
+        "oid": "cb796f485e7b5f2e4d9aa354096d8b94a91a8911"
+      },
+      "comments": [],
+      "reviews": []
+    }
+  ]
 }
