@@ -58,12 +58,9 @@ informative:
   DASH-IF-INGEST:
     target: https://dashif.org/Ingest/
     title: "DASH-IF Live Media Ingest Protocol"
-  MOQLIVEMOCK:
-    target: https://github.com/Eyevinn/moqlivemock
-    title: "moqlivemock — Reference LOCMAF server and tooling"
-  LOCMAF-SITE:
-    target: https://locmaf.dev
-    title: "LOCMAF — Low Overhead CMAF for MoQ"
+  LOCMAF-REPO:
+    target: https://github.com/Eyevinn/locmaf
+    title: "LOCMAF — reference implementation, conformance test vectors, golden files, and worked examples"
 
 --- abstract
 
@@ -90,16 +87,16 @@ choices — is defined for conformance testing.
 # Introduction
 
 CMAF {{CMAF}} chunk headers have a size starting at around 100 bytes,
-while the codec frames they describe may be only a few hundred bytes
-at low latency and low bitrate, such as audio tracks. Carrying CMAF
-directly over MoQ Transport {{MOQT}} therefore incurs a per-object
-overhead that the Low Overhead Container (LOC) {{LOC}} avoids by
-carrying raw codec frames with a minimal set of metadata. LOC,
-however, cannot transport the per-sample CENC {{CENC}} metadata
-needed for browser EME / CDM decryption of DRM-protected live
-streams, nor the `prft` (Producer Reference Time) and `emsg` (DASH
-Event Message) boxes that a CMAF chunk may carry alongside the
-`moof`.
+which can be as large as, or larger than, the coded frame the chunk
+describes — at low latency and low bitrate, such as audio, a frame is
+often only a few hundred bytes. Carrying CMAF directly over MoQ
+Transport {{MOQT}} therefore incurs a per-object overhead that the
+Low Overhead Container (LOC) {{LOC}} avoids by carrying raw codec
+frames with a minimal set of metadata. LOC, however, cannot transport
+the per-sample CENC {{CENC}} metadata needed for browser EME / CDM
+decryption of DRM-protected live streams, nor the `prft` (Producer
+Reference Time), `emsg` (DASH Event Message), and `uuid` boxes that a
+CMAF chunk may carry alongside the `moof`.
 
 LOCMAF closes this gap. It is a packaging — a compact container for
 CMAF media — that exploits the observation that consecutive CMAF
@@ -120,10 +117,12 @@ not a transport — MOQT {{MOQT}} is the transport.
 
 This document specifies the LOCMAF Object encoding, the generic box
 and raw-boxes elements, the full and delta chunk encodings, the
-catalog signalling (deferred to {{CMSF}}), the canonical CMAF
-reconstruction, and the DRM box round-trip. A reference
-implementation is available {{MOQLIVEMOCK}}. Worked examples and
-diagrams are published at {{LOCMAF-SITE}}.
+catalog signalling (aligned with {{CMSF}}), the canonical CMAF
+reconstruction, and the DRM box round-trip. Auxiliary top-level boxes
+such as `uuid` ride alongside the `moof` ({{genbox}}), and content
+outside the field model can be carried as whole boxes verbatim
+({{rawboxes}}). A reference implementation, conformance test vectors,
+golden files, and worked examples are published at {{LOCMAF-REPO}}.
 
 # Conventions and Definitions
 
@@ -136,9 +135,9 @@ The following terms are used throughout this document:
 
 CMAF chunk:
 : One `moof` + one `mdat` pair, optionally preceded by at most one
-  `styp`, at most one `prft`, and zero or more `emsg` boxes, as
-  defined in {{CMAF}} §7.3.3.2. The smallest CMAF addressable media
-  object.
+  `styp`, at most one `prft`, zero or more `emsg` boxes, and other
+  top-level boxes (e.g. `uuid`), as defined in {{CMAF}} §7.3.3.2. The
+  smallest CMAF addressable media object.
 
 CMAF fragment:
 : One or more CMAF chunks whose first chunk starts at a Stream Access
@@ -153,8 +152,8 @@ CMAF segment:
 
 CMAF Header:
 : The `ftyp` + `moov` pair that initialises a CMAF track. Also called
-  an *initialisation segment* in DASH parlance and carried as
-  initialisation data in CMSF {{CMSF}} catalogs.
+  an *initialisation segment* in DASH parlance and carried or
+  referenced as initialisation data by CMSF {{CMSF}} catalogs.
 
 MOQT group, MOQT object:
 : As defined in {{MOQT}}.
@@ -166,9 +165,9 @@ LOCMAF Object:
   raw-boxes element, as defined in {{object-encoding}}.
 
 genBox:
-: A generic box element that carries one ISO BMFF box that sits
-  outside `moof` in a CMAF chunk (for example `styp`, `prft`, `emsg`,
-  or `uuid`). See {{genbox}}.
+: A generic box element that carries one ISO BMFF box that precedes
+  `moof` in a CMAF chunk (for example `styp`, `prft`, `emsg`, or
+  `uuid`). See {{genbox}}.
 
 rawBoxes:
 : A raw-boxes element that carries one or more complete ISO BMFF
@@ -227,99 +226,6 @@ NOT apply subsequent delta chunks; it resumes either at the next
 full LOCMAF chunk or rawBoxes Object ({{rawboxes}}) in the same
 group or at the start of the next group.
 
-# Catalog Signalling {#catalog}
-
-LOCMAF media is signalled in a CMSF {{CMSF}} catalog. This document
-extends the allowed `packaging` values defined in {{MSF}} with one
-new entry, in the same manner that {{CMSF}} adds `"cmaf"`:
-
-| Name   | Value    | Reference     |
-|--------|----------|---------------|
-| LOCMAF | `locmaf` | This document |
-
-Every track entry in a CMSF catalog that carries LOCMAF-encoded
-media MUST declare a `packaging` value of `"locmaf"`. As with
-`"cmaf"`, the `"locmaf"` packaging is defined for CMSF catalogs
-only, not for plain MSF {{MSF}} catalogs.
-
-The LOCMAF Object encoding is versioned independently of the CMSF
-catalog `version`. This document adds one track-level catalog
-field, following the field-definition conventions of {{MSF}}:
-
-| Field          | Name            | Location | Required    | JSON Type |
-|----------------|-----------------|----------|-------------|-----------|
-| LOCMAF version | `locmafVersion` | T        | Conditional | String    |
-
-`locmafVersion` identifies the LOCMAF packaging version of the
-track. It MUST be present when `packaging` is `"locmaf"` and MUST
-NOT be present otherwise. The version specified by this document
-is `"0.3"`. A receiver MUST NOT subscribe to a LOCMAF track whose
-`locmafVersion` it does not support; when the catalog offers the
-same source under an alternative packaging, it MAY select that
-instead.
-
-The unknown-field rule of {{parity}} covers additive evolution
-within a version; `locmafVersion` signals behavioural changes that
-reinterpret existing wire syntax, which a receiver cannot detect
-from the wire bytes alone.
-
-The CMAF Header for a `locmaf` track is carried by the **same**
-mechanism {{CMSF}} uses for a `cmaf` track: an `initDataList` entry
-of inline base64 type (defined by {{MSF}}), referenced from the
-track entry by `initRef` (see {{cmaf-header}}). LOCMAF defines no init
-carriage of its own. A consequence is that a `cmaf` track and a
-`locmaf` track wrapping the same source MAY refer to the same
-`initData` entry; only the per-chunk Object encoding differs.
-
-DRM is signalled exactly as for a `cmaf` track, by the CMSF
-{{CMSF}} root-level `contentProtections` array referenced from the
-track entry by `contentProtectionRefIDs`, following the DASH-IF
-content-protection model {{DASHIF-ECCP}}. LOCMAF does **not** use the
-MSF moq-secure-objects mechanism; the encryption metadata travels
-inside the reconstructed CMAF boxes (see {{drm}}). The precise
-catalog field names are those defined by {{MSF}} and {{CMSF}};
-beyond the `packaging` value `"locmaf"` and the `locmafVersion`
-field, LOCMAF introduces no catalog fields.
-
-`cmaf` and `locmaf` tracks MAY be mixed in the same catalog under the
-same namespace — for example video using `cmaf` packaging while audio
-uses `locmaf` — and MAY coexist as alternative encodings of the same
-source.
-
-# CMAF Header Delivery {#cmaf-header}
-
-The CMAF Header for a LOCMAF track is byte-identical to the CMAF
-Header a plain `cmaf` track of the same source would carry — `ftyp`
-followed by `moov` (which contains `mvex` with `trex`, and `pssh`
-when the content is protected). It is delivered uncompressed via
-the catalog using the same CMSF {{CMSF}} mechanism as for `cmaf`
-packaging (an `initDataList` entry of inline base64 type,
-referenced by `initRef`). There is no LOCMAF-specific CMAF Header
-carrier.
-
-The `moov` in the CMAF Header MUST contain exactly one `trak` box
-(see {{scope}}).
-
-A LOCMAF receiver:
-
-1. Resolves the track's `initRef` to its `initDataList` entry and
-   takes the base64-encoded CMAF Header bytes.
-2. Base64-decodes the CMAF Header bytes.
-3. Feeds the bytes to its MSE / decoder pipeline exactly as it would
-   for a plain CMAF track.
-4. Extracts the parameters required to reconstruct CMAF chunks — the
-   single `trak`'s `track_ID`, `mdhd.timescale`, `trex` defaults, and
-   any track-encryption information (`tenc` defaults: default KID,
-   default per-sample IV size, constant IV, scheme type, and pattern
-   parameters) — from the decoded CMAF Header. These values seed the
-   per-track reconstruction state (see {{canonical}}).
-5. Begins receiving LOCMAF-encoded media Objects on the subscribed
-   track and reconstructs each CMAF chunk from the LOCMAF Object
-   payload.
-
-Compression of the catalog itself is out of scope for LOCMAF and
-handled at the MOQT {{MOQT}} / MSF {{MSF}} layer.
-
 # Scope and Publisher Requirements {#scope}
 
 LOCMAF targets the low-latency CMAF case: short CMAF fragments
@@ -343,10 +249,6 @@ If a source violates either of these, the publisher MUST NOT use
 LOCMAF packaging for that track and MUST instead use plain CMAF
 packaging. LOCMAF and plain CMAF tracks MAY coexist in the same
 catalog under the same namespace (see {{catalog}}).
-
-LOCMAF places no constraint on `sample_flags`: the full 32-bit ISO
-BMFF `sample_flags` value ({{ISOBMFF}} §8.8.3.1) round-trips
-through the packaging (see {{field-ref}}).
 
 ## Recommended source properties
 
@@ -372,6 +274,107 @@ encoders and decoders. Strict `cmf2` mode is an opt-in encoder
 tweak and is **not** the canonical baseline used for conformance;
 the canonical reconstruction defined in {{canonical}} emits a
 `tfhd` default only when it differs from `trex`.
+
+# Catalog Signalling {#catalog}
+
+LOCMAF media is signalled in a CMSF {{CMSF}} catalog. This document
+extends the allowed `packaging` values defined in {{MSF}} with one
+new entry, in the same manner that {{CMSF}} adds `"cmaf"`:
+
+| Name   | Value    | Reference     |
+|--------|----------|---------------|
+| LOCMAF | `locmaf` | This document |
+
+Every track entry in a CMSF catalog that carries LOCMAF-encoded
+media MUST declare a `packaging` value of `"locmaf"`. As with
+`"cmaf"`, the `"locmaf"` packaging is defined for CMSF catalogs
+only, not for plain MSF {{MSF}} catalogs. The `"locmaf"` packaging
+value and the `locmafVersion` field below are expected to migrate
+into {{CMSF}} once it registers them; until then they are defined
+here.
+
+The LOCMAF Object encoding is versioned independently of the CMSF
+catalog `version`. This document adds one track-level catalog
+field, following the field-definition conventions of {{MSF}}:
+
+| Field          | Name            | Location | Required    | JSON Type |
+|----------------|-----------------|----------|-------------|-----------|
+| LOCMAF version | `locmafVersion` | T        | Conditional | String    |
+
+`locmafVersion` identifies the LOCMAF packaging version of the
+track. It MUST be present when `packaging` is `"locmaf"` and MUST
+NOT be present otherwise. The version specified by this document
+is `"0.3"`. A receiver MUST NOT subscribe to a LOCMAF track whose
+`locmafVersion` it does not support; when the catalog offers the
+same source under an alternative packaging, it MAY select that
+instead.
+
+The unknown-field rule of {{parity}} covers additive evolution
+within a version; `locmafVersion` signals behavioural changes that
+reinterpret existing wire syntax, which a receiver cannot detect
+from the wire bytes alone.
+
+The CMAF Header for a `locmaf` track is carried by the **same**
+mechanism {{CMSF}} uses for a `cmaf` track: an `initDataList` entry
+referenced from the track entry by `initRef` (see {{cmaf-header}}).
+LOCMAF places no additional restriction on the `initDataList` entry
+`type` and has the same flexibility as `cmaf` packaging: the inline
+base64 type is the common case, but any `initDataList` type defined
+by {{MSF}} or {{CMSF}} MAY be used. LOCMAF defines no init carriage
+of its own. A consequence is that a `cmaf` track and a `locmaf`
+track wrapping the same source MAY refer to the same `initData`
+entry; only the per-chunk Object encoding differs.
+
+DRM is signalled exactly as for a `cmaf` track, by the CMSF
+{{CMSF}} root-level `contentProtections` array referenced from the
+track entry by `contentProtectionRefIDs`, following the DASH-IF
+content-protection model {{DASHIF-ECCP}}. LOCMAF does **not** use the
+MSF moq-secure-objects mechanism; the encryption metadata travels
+inside the reconstructed CMAF boxes (see {{drm}}). The precise
+catalog field names are those defined by {{MSF}} and {{CMSF}};
+beyond the `packaging` value `"locmaf"` and the `locmafVersion`
+field, LOCMAF introduces no catalog fields.
+
+`cmaf` and `locmaf` tracks MAY be mixed in the same catalog under the
+same namespace — for example video using `cmaf` packaging while audio
+uses `locmaf` — and MAY coexist as alternative encodings of the same
+source.
+
+# CMAF Header Delivery {#cmaf-header}
+
+The CMAF Header for a LOCMAF track is byte-identical to the CMAF
+Header a plain `cmaf` track of the same source would carry — `ftyp`
+followed by `moov` (which contains `mvex` with `trex`, and, for
+protected content, optionally `pssh`). It is carried or referenced
+via the same CMSF {{CMSF}} mechanism as for `cmaf` packaging (an
+`initDataList` entry referenced by `initRef`), using whichever
+`initDataList` `type` the catalog specifies; the inline base64 type
+is the common case. There is no LOCMAF-specific CMAF Header carrier.
+
+The `moov` in the CMAF Header MUST contain exactly one `trak` box
+(see {{scope}}).
+
+A LOCMAF receiver:
+
+1. Resolves the track's `initRef` to its `initDataList` entry and
+   obtains the CMAF Header bytes as the entry's `type` dictates
+   (base64-decoding an inline entry).
+2. Feeds the bytes to its MSE / decoder pipeline exactly as it would
+   for a plain CMAF track.
+3. Extracts the parameters required to reconstruct CMAF chunks — the
+   single `trak`'s `track_ID`, `mdhd.timescale`, `trex` defaults, and
+   any track-encryption information (`tenc` defaults: default KID,
+   default per-sample IV size, constant IV, scheme type, and pattern
+   parameters) — from the decoded CMAF Header. These values seed the
+   per-track reconstruction state (see {{canonical}}).
+4. Begins receiving LOCMAF-encoded media Objects on the subscribed
+   track and reconstructs each CMAF chunk from the LOCMAF Object
+   payload.
+
+Compression of the CMAF Header (init data), which can be sizeable,
+is out of scope for LOCMAF: it is a property of the `initDataList`
+entry `type` and handled by the CMSF {{CMSF}} / MSF {{MSF}} init-data
+mechanism, not defined here.
 
 # Object Encoding {#object-encoding}
 
@@ -400,6 +403,11 @@ payload:
 ~~~
 rawBoxes          complete ISO BMFF boxes, verbatim ({{rawboxes}})
 ~~~
+
+The raw-boxes shape is not the common per-chunk path. It serves
+in-group resync ({{mapping}}), verbatim carriage of chunks whose
+`moof` falls outside the LOCMAF field model, and self-framed storage
+outside MOQT ({{outside-moqt}}); see {{rawboxes}}.
 
 In the moof-carrying shape, the `locmafHeader` marks where the
 `moof` sits in the reconstructed chunk: every `genBox` before it
