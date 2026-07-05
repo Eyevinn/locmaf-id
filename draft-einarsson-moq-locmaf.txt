@@ -4,8 +4,8 @@
 
 Media Over QUIC                                             T. Einarsson
 Internet-Draft                                        Eyevinn Technology
-Intended status: Informational                               4 July 2026
-Expires: 5 January 2027
+Intended status: Informational                               5 July 2026
+Expires: 6 January 2027
 
 
              Low Overhead CMAF for Media over QUIC (LOCMAF)
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 January 2027.
+   This Internet-Draft will expire on 6 January 2027.
 
 Copyright Notice
 
@@ -84,12 +84,12 @@ Table of Contents
    1.  Introduction
    2.  Conventions and Definitions
    3.  MOQT Group / Object Mapping
-   4.  Catalog Signalling
-   5.  CMAF Header Delivery
-   6.  Scope and Publisher Requirements
-     6.1.  Mandatory preconditions
-     6.2.  Recommended source properties
-     6.3.  Optional encoder modes
+   4.  Scope and Publisher Requirements
+     4.1.  Mandatory preconditions
+     4.2.  Recommended source properties
+     4.3.  Optional encoder modes
+   5.  Catalog Signalling
+   6.  CMAF Header Delivery
    7.  Object Encoding
      7.1.  Element sequence and dispatch
      7.2.  Header element layout
@@ -149,15 +149,16 @@ Table of Contents
 1.  Introduction
 
    CMAF [CMAF] chunk headers have a size starting at around 100 bytes,
-   while the codec frames they describe may be only a few hundred bytes
-   at low latency and low bitrate, such as audio tracks.  Carrying CMAF
-   directly over MoQ Transport [MOQT] therefore incurs a per-object
-   overhead that the Low Overhead Container (LOC) [LOC] avoids by
-   carrying raw codec frames with a minimal set of metadata.  LOC,
-   however, cannot transport the per-sample CENC [CENC] metadata needed
-   for browser EME / CDM decryption of DRM-protected live streams, nor
-   the prft (Producer Reference Time) and emsg (DASH Event Message)
-   boxes that a CMAF chunk may carry alongside the moof.
+   which can be as large as, or larger than, the coded frame the chunk
+   describes — at low latency and low bitrate, such as audio, a frame is
+   often only a few hundred bytes.  Carrying CMAF directly over MoQ
+   Transport [MOQT] therefore incurs a per-object overhead that the Low
+   Overhead Container (LOC) [LOC] avoids by carrying raw codec frames
+   with a minimal set of metadata.  LOC, however, cannot transport the
+   per-sample CENC [CENC] metadata needed for browser EME / CDM
+   decryption of DRM-protected live streams, nor the prft (Producer
+   Reference Time), emsg (DASH Event Message), and uuid boxes that a
+   CMAF chunk may carry alongside the moof.
 
    LOCMAF closes this gap.  It is a packaging — a compact container for
    CMAF media — that exploits the observation that consecutive CMAF
@@ -178,10 +179,12 @@ Table of Contents
 
    This document specifies the LOCMAF Object encoding, the generic box
    and raw-boxes elements, the full and delta chunk encodings, the
-   catalog signalling (deferred to [CMSF]), the canonical CMAF
-   reconstruction, and the DRM box round-trip.  A reference
-   implementation is available [MOQLIVEMOCK].  Worked examples and
-   diagrams are published at [LOCMAF-SITE].
+   catalog signalling (aligned with [CMSF]), the canonical CMAF
+   reconstruction, and the DRM box round-trip.  Auxiliary top-level
+   boxes such as uuid ride alongside the moof (Section 8), and content
+   outside the field model can be carried as whole boxes verbatim
+   (Section 9).  A reference implementation, conformance test vectors,
+   golden files, and worked examples are published at [LOCMAF-REPO].
 
 2.  Conventions and Definitions
 
@@ -197,9 +200,9 @@ Table of Contents
    The following terms are used throughout this document:
 
    CMAF chunk:  One moof + one mdat pair, optionally preceded by at most
-      one styp, at most one prft, and zero or more emsg boxes, as
-      defined in [CMAF] §7.3.3.2.  The smallest CMAF addressable media
-      object.
+      one styp, at most one prft, zero or more emsg boxes, and other
+      top-level boxes (e.g. uuid), as defined in [CMAF] §7.3.3.2.  The
+      smallest CMAF addressable media object.
 
    CMAF fragment:  One or more CMAF chunks whose first chunk starts at a
       Stream Access Point ([CMAF] §7.3.2.2).  A fragment is logically a
@@ -213,7 +216,8 @@ Table of Contents
 
    CMAF Header:  The ftyp + moov pair that initialises a CMAF track.
       Also called an _initialisation segment_ in DASH parlance and
-      carried as initialisation data in CMSF [CMSF] catalogs.
+      carried or referenced as initialisation data by CMSF [CMSF]
+      catalogs.
 
    MOQT group, MOQT object:  As defined in [MOQT].
 
@@ -223,8 +227,8 @@ Table of Contents
       or a single raw-boxes element, as defined in Section 7.
 
    genBox:  A generic box element that carries one ISO BMFF box that
-      sits outside moof in a CMAF chunk (for example styp, prft, emsg,
-      or uuid).  See Section 8.
+      precedes moof in a CMAF chunk (for example styp, prft, emsg, or
+      uuid).  See Section 8.
 
    rawBoxes:  A raw-boxes element that carries one or more complete ISO
       BMFF boxes verbatim, including their box headers, as the entire
@@ -282,7 +286,58 @@ Table of Contents
    LOCMAF chunk or rawBoxes Object (Section 9) in the same group or at
    the start of the next group.
 
-4.  Catalog Signalling
+4.  Scope and Publisher Requirements
+
+   LOCMAF targets the low-latency CMAF case: short CMAF fragments
+   composed of small CMAF chunks (often one sample per chunk),
+   optionally carrying CENC encryption metadata.  To keep the packaging
+   minimal, the following constraints apply.
+
+4.1.  Mandatory preconditions
+
+   A LOCMAF publisher MUST ensure that:
+
+   1.  *Single trak per moov.* The CMAF Header contains exactly one trak
+       box.  Multi-track ISO BMFF files MUST be demuxed before LOCMAF
+       encoding.
+
+   2.  *No key ID (KID) change within a CMAF chunk.* Key-identifier
+       transitions MUST align with fragment (and therefore chunk)
+       boundaries.  This removes the need for sgpd / sbgp boxes in the
+       packaging.
+
+   If a source violates either of these, the publisher MUST NOT use
+   LOCMAF packaging for that track and MUST instead use plain CMAF
+   packaging.  LOCMAF and plain CMAF tracks MAY coexist in the same
+   catalog under the same namespace (see Section 5).
+
+4.2.  Recommended source properties
+
+   The following are recommendations whose violation costs bytes but
+   does not break LOCMAF:
+
+   1.  *Commensurate media timescales.* Choose a timescale so every
+       frame has an exact integer duration (e.g. 48 000 for 48 kHz AAC,
+       60 000 for 60000/1001 fps video).
+
+   2.  *Stable trex defaults.* Keeping trex consistent across the stream
+       maximises what can be omitted from each chunk header.
+
+4.3.  Optional encoder modes
+
+   A LOCMAF encoder MAY operate in *strict cmf2 mode*, in which it
+   always emits the four tfhd defaults (sample duration, size, flags,
+   sample-description index) in the full chunk header even when they
+   match trex.  This costs a handful of bytes per group but produces
+   reconstructed CMAF chunks in which each chunk is a self-decodable
+   single-chunk fragment per [CMAF] §7.7.3.  It need not be signalled,
+   since it does not affect compatibility between encoders and decoders.
+   Strict cmf2 mode is an opt-in encoder tweak and is *not* the
+   canonical baseline used for conformance; the canonical reconstruction
+   defined in Section 15 emits a tfhd default only when it differs from
+   trex.
+
+5.  Catalog Signalling
 
    LOCMAF media is signalled in a CMSF [CMSF] catalog.  This document
    extends the allowed packaging values defined in [MSF] with one new
@@ -299,7 +354,9 @@ Table of Contents
    Every track entry in a CMSF catalog that carries LOCMAF-encoded media
    MUST declare a packaging value of "locmaf".  As with "cmaf", the
    "locmaf" packaging is defined for CMSF catalogs only, not for plain
-   MSF [MSF] catalogs.
+   MSF [MSF] catalogs.  The "locmaf" packaging value and the
+   locmafVersion field below are expected to migrate into [CMSF] once it
+   registers them; until then they are defined here.
 
    The LOCMAF Object encoding is versioned independently of the CMSF
    catalog version.  This document adds one track-level catalog field,
@@ -327,12 +384,15 @@ Table of Contents
    the wire bytes alone.
 
    The CMAF Header for a locmaf track is carried by the *same* mechanism
-   [CMSF] uses for a cmaf track: an initDataList entry of inline base64
-   type (defined by [MSF]), referenced from the track entry by initRef
-   (see Section 5).  LOCMAF defines no init carriage of its own.  A
-   consequence is that a cmaf track and a locmaf track wrapping the same
-   source MAY refer to the same initData entry; only the per-chunk
-   Object encoding differs.
+   [CMSF] uses for a cmaf track: an initDataList entry referenced from
+   the track entry by initRef (see Section 6).  LOCMAF places no
+   additional restriction on the initDataList entry type and has the
+   same flexibility as cmaf packaging: the inline base64 type is the
+   common case, but any initDataList type defined by [MSF] or [CMSF] MAY
+   be used.  LOCMAF defines no init carriage of its own.  A consequence
+   is that a cmaf track and a locmaf track wrapping the same source MAY
+   refer to the same initData entry; only the per-chunk Object encoding
+   differs.
 
    DRM is signalled exactly as for a cmaf track, by the CMSF [CMSF]
    root-level contentProtections array referenced from the track entry
@@ -349,97 +409,44 @@ Table of Contents
    uses locmaf — and MAY coexist as alternative encodings of the same
    source.
 
-5.  CMAF Header Delivery
+6.  CMAF Header Delivery
 
    The CMAF Header for a LOCMAF track is byte-identical to the CMAF
    Header a plain cmaf track of the same source would carry — ftyp
-   followed by moov (which contains mvex with trex, and pssh when the
-   content is protected).  It is delivered uncompressed via the catalog
-   using the same CMSF [CMSF] mechanism as for cmaf packaging (an
-   initDataList entry of inline base64 type, referenced by initRef).
-   There is no LOCMAF-specific CMAF Header carrier.
+   followed by moov (which contains mvex with trex, and, for protected
+   content, optionally pssh).  It is carried or referenced via the same
+   CMSF [CMSF] mechanism as for cmaf packaging (an initDataList entry
+   referenced by initRef), using whichever initDataList type the catalog
+   specifies; the inline base64 type is the common case.  There is no
+   LOCMAF-specific CMAF Header carrier.
 
    The moov in the CMAF Header MUST contain exactly one trak box (see
-   Section 6).
+   Section 4).
 
    A LOCMAF receiver:
 
-   1.  Resolves the track's initRef to its initDataList entry and takes
-       the base64-encoded CMAF Header bytes.
+   1.  Resolves the track's initRef to its initDataList entry and
+       obtains the CMAF Header bytes as the entry's type dictates
+       (base64-decoding an inline entry).
 
-   2.  Base64-decodes the CMAF Header bytes.
-
-   3.  Feeds the bytes to its MSE / decoder pipeline exactly as it would
+   2.  Feeds the bytes to its MSE / decoder pipeline exactly as it would
        for a plain CMAF track.
 
-   4.  Extracts the parameters required to reconstruct CMAF chunks — the
+   3.  Extracts the parameters required to reconstruct CMAF chunks — the
        single trak's track_ID, mdhd.timescale, trex defaults, and any
        track-encryption information (tenc defaults: default KID, default
        per-sample IV size, constant IV, scheme type, and pattern
        parameters) — from the decoded CMAF Header.  These values seed
        the per-track reconstruction state (see Section 15).
 
-   5.  Begins receiving LOCMAF-encoded media Objects on the subscribed
+   4.  Begins receiving LOCMAF-encoded media Objects on the subscribed
        track and reconstructs each CMAF chunk from the LOCMAF Object
        payload.
 
-   Compression of the catalog itself is out of scope for LOCMAF and
-   handled at the MOQT [MOQT] / MSF [MSF] layer.
-
-6.  Scope and Publisher Requirements
-
-   LOCMAF targets the low-latency CMAF case: short CMAF fragments
-   composed of small CMAF chunks (often one sample per chunk),
-   optionally carrying CENC encryption metadata.  To keep the packaging
-   minimal, the following constraints apply.
-
-6.1.  Mandatory preconditions
-
-   A LOCMAF publisher MUST ensure that:
-
-   1.  *Single trak per moov.* The CMAF Header contains exactly one trak
-       box.  Multi-track ISO BMFF files MUST be demuxed before LOCMAF
-       encoding.
-
-   2.  *No key ID (KID) change within a CMAF chunk.* Key-identifier
-       transitions MUST align with fragment (and therefore chunk)
-       boundaries.  This removes the need for sgpd / sbgp boxes in the
-       packaging.
-
-   If a source violates either of these, the publisher MUST NOT use
-   LOCMAF packaging for that track and MUST instead use plain CMAF
-   packaging.  LOCMAF and plain CMAF tracks MAY coexist in the same
-   catalog under the same namespace (see Section 4).
-
-   LOCMAF places no constraint on sample_flags: the full 32-bit ISO BMFF
-   sample_flags value ([ISOBMFF] §8.8.3.1) round-trips through the
-   packaging (see Section 10).
-
-6.2.  Recommended source properties
-
-   The following are recommendations whose violation costs bytes but
-   does not break LOCMAF:
-
-   1.  *Commensurate media timescales.* Choose a timescale so every
-       frame has an exact integer duration (e.g. 48 000 for 48 kHz AAC,
-       60 000 for 60000/1001 fps video).
-
-   2.  *Stable trex defaults.* Keeping trex consistent across the stream
-       maximises what can be omitted from each chunk header.
-
-6.3.  Optional encoder modes
-
-   A LOCMAF encoder MAY operate in *strict cmf2 mode*, in which it
-   always emits the four tfhd defaults (sample duration, size, flags,
-   sample-description index) in the full chunk header even when they
-   match trex.  This costs a handful of bytes per group but produces
-   reconstructed CMAF chunks in which each chunk is a self-decodable
-   single-chunk fragment per [CMAF] §7.7.3.  It need not be signalled,
-   since it does not affect compatibility between encoders and decoders.
-   Strict cmf2 mode is an opt-in encoder tweak and is *not* the
-   canonical baseline used for conformance; the canonical reconstruction
-   defined in Section 15 emits a tfhd default only when it differs from
-   trex.
+   Compression of the CMAF Header (init data), which can be sizeable, is
+   out of scope for LOCMAF: it is a property of the initDataList entry
+   type and handled by the CMSF [CMSF] / MSF [MSF] init-data mechanism,
+   not defined here.
 
 7.  Object Encoding
 
@@ -464,6 +471,11 @@ Table of Contents
    payload:
 
    rawBoxes          complete ISO BMFF boxes, verbatim ({{rawboxes}})
+
+   The raw-boxes shape is not the common per-chunk path.  It serves in-
+   group resync (Section 3), verbatim carriage of chunks whose moof
+   falls outside the LOCMAF field model, and self-framed storage outside
+   MOQT (Section 17); see Section 9.
 
    In the moof-carrying shape, the locmafHeader marks where the moof
    sits in the reconstructed chunk: every genBox before it renders
@@ -846,42 +858,47 @@ Table of Contents
    this document; they are not LOC properties and are not registered
    with IANA (see Section 19).
 
-   The fields are drawn from the boxes inside moof.traf — trun, tfhd,
-   tfdt, and senc.  Each symbol prefix names its containing box.  The
-   field IDs are identical across full and delta headers; only the value
-   encoding differs (absolute in a full header, delta in a delta header
-   — see Section 11 and Section 12).
+   The fields are drawn from the boxes inside moof.traf.  Each symbol
+   prefix names its containing box, and the table groups them by box in
+   reconstruction order — tfhd, then tfdt, then trun, then senc.  The
+   field IDs are therefore not consecutive: the parity rule
+   (Section 7.3) fixes every scalar to an even ID and every list to an
+   odd ID, and the lowest IDs are held for the common-media fields so
+   they encode in a single byte.  The field IDs are identical across
+   full and delta headers; only the value encoding differs (absolute in
+   a full header, delta in a delta header — see Section 11 and
+   Section 12).
 
          +====+==================================+===============+
          | ID | Symbol                           | Kind          |
          +====+==================================+===============+
-         |  1 | trunSampleSizes                  | list          |
-         +----+----------------------------------+---------------+
          |  2 | tfhdSampleDescriptionIndex       | scalar        |
-         +----+----------------------------------+---------------+
-         |  3 | trunSampleDurations              | list          |
          +----+----------------------------------+---------------+
          |  4 | tfhdDefaultSampleDuration        | scalar        |
          +----+----------------------------------+---------------+
-         |  5 | trunSampleCompositionTimeOffsets | signed list ‡ |
-         +----+----------------------------------+---------------+
          |  6 | tfhdDefaultSampleSize            | scalar        |
-         +----+----------------------------------+---------------+
-         |  7 | trunSampleFlags                  | list          |
          +----+----------------------------------+---------------+
          |  8 | tfhdDefaultSampleFlags           | scalar        |
          +----+----------------------------------+---------------+
-         |  9 | sencInitializationVector         | raw bytes     |
-         +----+----------------------------------+---------------+
          | 10 | tfdtBaseMediaDecodeTime          | scalar        |
          +----+----------------------------------+---------------+
-         | 11 | sencSubsampleCount               | list          |
+         |  1 | trunSampleSizes                  | list          |
+         +----+----------------------------------+---------------+
+         |  3 | trunSampleDurations              | list          |
+         +----+----------------------------------+---------------+
+         |  5 | trunSampleCompositionTimeOffsets | signed list ‡ |
+         +----+----------------------------------+---------------+
+         |  7 | trunSampleFlags                  | list          |
          +----+----------------------------------+---------------+
          | 12 | trunFirstSampleFlags             | scalar        |
          +----+----------------------------------+---------------+
-         | 13 | sencBytesOfClearData             | list          |
-         +----+----------------------------------+---------------+
          | 14 | trunSampleCount                  | scalar        |
+         +----+----------------------------------+---------------+
+         |  9 | sencInitializationVector         | raw bytes     |
+         +----+----------------------------------+---------------+
+         | 11 | sencSubsampleCount               | list          |
+         +----+----------------------------------+---------------+
+         | 13 | sencBytesOfClearData             | list          |
          +----+----------------------------------+---------------+
          | 15 | sencBytesOfProtectedData         | list          |
          +----+----------------------------------+---------------+
@@ -1033,7 +1050,7 @@ Table of Contents
    These rules produce the minimal encoding and are part of the
    canonical encoding (Section 15.9).  An encoder MAY additionally emit
    a field whose value matches the applicable default — strict cmf2 mode
-   (Section 6) does exactly that for the four tfhd defaults — without
+   (Section 4) does exactly that for the four tfhd defaults — without
    affecting the decoded effective values or the canonical
    reconstruction (Section 15).
 
@@ -1198,7 +1215,7 @@ Table of Contents
    key identifier, scheme, pattern parameters, and other static
    encryption defaults are carried in the CMAF Header's tenc box (inside
    schi inside sinf) and signalled in the catalog through CMSF
-   contentProtections and contentProtectionRefIDs (see Section 4).  The
+   contentProtections and contentProtectionRefIDs (see Section 5).  The
    per-sample material that varies chunk to chunk is carried as
    locmafHeader fields.
 
@@ -1258,11 +1275,11 @@ Table of Contents
     +================+================================================+
     | sgpd / sbgp    | Mid-fragment key rotation via seig sample      |
     |                | groups is out of scope; KID changes MUST align |
-    |                | with fragment boundaries (see Section 6).      |
+    |                | with fragment boundaries (see Section 4).      |
     +----------------+------------------------------------------------+
     | pssh (per-     | License-acquisition information is signalled   |
     | fragment)      | via the CMSF contentProtections mechanism (see |
-    |                | Section 4), per [CMAF] §7.4.3.                 |
+    |                | Section 5), per [CMAF] §7.4.3.                 |
     +----------------+------------------------------------------------+
     | subs           | Sub-sample information for image subtitle      |
     |                | profiles (e.g. im1i) is out of scope.          |
@@ -1409,7 +1426,7 @@ Table of Contents
    so sample-data offsets are relative to the start of the containing
    moof ([ISOBMFF]).  Each optional default sets its flag and emits its
    value iff the effective values call for it — wire presence is
-   irrelevant, so a strict-cmf2 encoding (Section 6) canonicalises
+   irrelevant, so a strict-cmf2 encoding (Section 4) canonicalises
    identically to its minimal counterpart:
 
    *  sample-description-index-present (0x000002) iff the effective
@@ -1641,7 +1658,7 @@ Table of Contents
 
    *  *Chunk interfaces.* Reconstruct a CMAF chunk per Section 15 and
       feed it to an interface that accepts ISO BMFF / CMAF input,
-      initialised with the CMAF Header (see Section 5).  In the browser
+      initialised with the CMAF Header (see Section 6).  In the browser
       this is Media Source Extensions (MSE): append the chunk to a
       SourceBuffer whose initialisation segment is the CMAF Header.
       Native media pipelines built around a fragmented-MP4 demuxer
@@ -1714,7 +1731,7 @@ Table of Contents
       parts of a segment yields the same bytes as the DASH segment and
       the same file as stored at rest.
 
-   The catalog signalling of Section 4 has no MPD or playlist
+   The catalog signalling of Section 5 has no MPD or playlist
    counterpart defined here: at minimum the packaging, the
    locmafVersion, the initialisation-data reference, and any content-
    protection signalling need manifest-level equivalents, and the
@@ -1845,13 +1862,10 @@ Table of Contents
               Protection (ECCP)", 2023,
               <https://dashif.org/docs/DASH-IF-ECCP-v1.0.0.pdf>.
 
-   [LOCMAF-SITE]
-              "LOCMAF — Low Overhead CMAF for MoQ", n.d.,
-              <https://locmaf.dev>.
-
-   [MOQLIVEMOCK]
-              "moqlivemock — Reference LOCMAF server and tooling", n.d.,
-              <https://github.com/Eyevinn/moqlivemock>.
+   [LOCMAF-REPO]
+              "LOCMAF — reference implementation, conformance test
+              vectors, golden files, and worked examples", n.d.,
+              <https://github.com/Eyevinn/locmaf>.
 
 Acknowledgments
 
