@@ -765,28 +765,33 @@ including its four per-field exceptions. LOCMAF governs these IDs
 in this document; they are not LOC properties and are not
 registered with IANA (see {{iana}}).
 
-The fields are drawn from the boxes inside `moof.traf` — `trun`,
-`tfhd`, `tfdt`, and `senc`. Each symbol prefix names its containing
-box. The field IDs are identical across full and delta headers;
-only the value encoding differs (absolute in a full header, delta
-in a delta header — see {{full-chunk}} and {{delta-chunk}}).
+The fields are drawn from the boxes inside `moof.traf`. Each symbol
+prefix names its containing box, and the table groups them by box in
+reconstruction order — `tfhd`, then `tfdt`, then `trun`, then
+`senc`. The field IDs are therefore not consecutive: the parity rule
+({{parity}}) fixes every scalar to an even ID and every list to an
+odd ID, and the lowest IDs are held for the common-media fields so
+they encode in a single byte. The field IDs are identical across
+full and delta headers; only the value encoding differs (absolute in
+a full header, delta in a delta header — see {{full-chunk}} and
+{{delta-chunk}}).
 
 | ID | Symbol | Kind |
 |---:|--------|------|
-| 1 | `trunSampleSizes` | list |
 | 2 | `tfhdSampleDescriptionIndex` | scalar |
-| 3 | `trunSampleDurations` | list |
 | 4 | `tfhdDefaultSampleDuration` | scalar |
-| 5 | `trunSampleCompositionTimeOffsets` | signed list ‡ |
 | 6 | `tfhdDefaultSampleSize` | scalar |
-| 7 | `trunSampleFlags` | list |
 | 8 | `tfhdDefaultSampleFlags` | scalar |
-| 9 | `sencInitializationVector` | raw bytes |
 | 10 | `tfdtBaseMediaDecodeTime` | scalar |
-| 11 | `sencSubsampleCount` | list |
+| 1 | `trunSampleSizes` | list |
+| 3 | `trunSampleDurations` | list |
+| 5 | `trunSampleCompositionTimeOffsets` | signed list ‡ |
+| 7 | `trunSampleFlags` | list |
 | 12 | `trunFirstSampleFlags` | scalar |
-| 13 | `sencBytesOfClearData` | list |
 | 14 | `trunSampleCount` | scalar |
+| 9 | `sencInitializationVector` | raw bytes |
+| 11 | `sencSubsampleCount` | list |
+| 13 | `sencBytesOfClearData` | list |
 | 15 | `sencBytesOfProtectedData` | list |
 | 16 | `sencPerSampleIVSize` | scalar |
 | 27 | `deltaDeletedLocmafIDs` | list |
