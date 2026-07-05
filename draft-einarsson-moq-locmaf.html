@@ -3269,9 +3269,10 @@ any effective composition-time offset ≠ 0.<a href="#section-15.6-3.6.1" class=
 </li>
         </ul>
 <p id="section-15.6-4">The <code>trun</code> field layout is <code>sample_count</code>, then <code>data_offset</code>, then
-(if <code>first-sample-flags-present</code>) <code>first_sample_flags</code> (which is
-<code>flags[0]</code>), then the per-sample records populated from the
-effective vectors, each carrying its present fields in ISO order:
+(if <code>first-sample-flags-present</code>) <code>first_sample_flags</code> (the effective
+flags of the first sample), then the per-sample records populated
+from the effective vectors, each carrying its present fields in ISO
+order:
 <code>sample_duration</code>, <code>sample_size</code>, <code>sample_flags</code>,
 <code>sample_composition_time_offset</code>. When <code>trun.version == 1</code> the
 composition-time offset is a signed 32-bit value; when
