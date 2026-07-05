@@ -1206,7 +1206,7 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-catalog-signalling" class="internal xref">Catalog Signalling</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-catalog-signaling" class="internal xref">Catalog Signaling</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-cmaf-header-delivery" class="internal xref">CMAF Header Delivery</a></p>
@@ -1435,7 +1435,7 @@ therefore a media packaging, not a hop-by-hop transfer encoding, and
 not a transport — MOQT <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span> is the transport.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">This document specifies the LOCMAF Object encoding, the generic box
 and raw-boxes elements, the full and delta chunk encodings, the
-catalog signalling (aligned with <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>), the canonical CMAF
+catalog signaling (aligned with <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>), the canonical CMAF
 reconstruction, and the DRM box round-trip. Auxiliary top-level boxes
 such as <code>uuid</code> ride alongside the <code>moof</code> (<a href="#genbox" class="auto internal xref">Section 8</a>), and content
 outside the field model can be carried as whole boxes verbatim
@@ -1481,9 +1481,9 @@ in LOCMAF the segment corresponds to one MOQT group.<a href="#section-2-4.6.1" c
         <dd class="break"></dd>
 <dt id="section-2-4.7">CMAF Header:</dt>
         <dd style="margin-left: 1.5em" id="section-2-4.8">
-          <p id="section-2-4.8.1">The <code>ftyp</code> + <code>moov</code> pair that initialises a CMAF track. Also called
-an <em>initialisation segment</em> in DASH parlance and carried or
-referenced as initialisation data by CMSF <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> catalogs.<a href="#section-2-4.8.1" class="pilcrow">¶</a></p>
+          <p id="section-2-4.8.1">The <code>ftyp</code> + <code>moov</code> pair that initializes a CMAF track. Also called
+an <em>initialization segment</em> in DASH parlance and carried or
+referenced as initialization data by CMSF <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> catalogs.<a href="#section-2-4.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-4.9">MOQT group, MOQT object:</dt>
@@ -1635,7 +1635,7 @@ frame has an exact integer duration (e.g. 48 000 for 48 kHz AAC,
 </li>
           <li id="section-4.2-2.2">
             <p id="section-4.2-2.2.1"><strong>Stable <code>trex</code> defaults.</strong> Keeping <code>trex</code> consistent across the
-stream maximises what can be omitted from each chunk header.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+stream maximizes what can be omitted from each chunk header.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -1651,7 +1651,7 @@ flags, sample-description index) in the full chunk header even when
 they match <code>trex</code>. This costs a handful of bytes per group but
 produces reconstructed CMAF chunks in which each chunk is a
 self-decodable single-chunk fragment per <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §7.7.3. It need
-not be signalled, since it does not affect compatibility between
+not be signaled, since it does not affect compatibility between
 encoders and decoders. Strict <code>cmf2</code> mode is an opt-in encoder
 tweak and is <strong>not</strong> the canonical baseline used for conformance;
 the canonical reconstruction defined in <a href="#canonical" class="auto internal xref">Section 15</a> emits a
@@ -1662,10 +1662,10 @@ the canonical reconstruction defined in <a href="#canonical" class="auto interna
 </div>
 <div id="catalog">
 <section id="section-5">
-      <h2 id="name-catalog-signalling">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-catalog-signalling" class="section-name selfRef">Catalog Signalling</a>
+      <h2 id="name-catalog-signaling">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-catalog-signaling" class="section-name selfRef">Catalog Signaling</a>
       </h2>
-<p id="section-5-1">LOCMAF media is signalled in a CMSF <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> catalog. This document
+<p id="section-5-1">LOCMAF media is signaled in a CMSF <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> catalog. This document
 extends the allowed <code>packaging</code> values defined in <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> with one
 new entry, in the same manner that <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> adds <code>"cmaf"</code>:<a href="#section-5-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
@@ -1727,7 +1727,7 @@ is <code>"0.3"</code>. A receiver <span class="bcp14">MUST NOT</span> subscribe 
 same source under an alternative packaging, it <span class="bcp14">MAY</span> select that
 instead.<a href="#section-5-6" class="pilcrow">¶</a></p>
 <p id="section-5-7">The unknown-field rule of <a href="#parity" class="auto internal xref">Section 7.3</a> covers additive evolution
-within a version; <code>locmafVersion</code> signals behavioural changes that
+within a version; <code>locmafVersion</code> signals behavioral changes that
 reinterpret existing wire syntax, which a receiver cannot detect
 from the wire bytes alone.<a href="#section-5-7" class="pilcrow">¶</a></p>
 <p id="section-5-8">The CMAF Header for a <code>locmaf</code> track is carried by the <strong>same</strong>
@@ -1740,7 +1740,7 @@ by <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> or <span>[<a href="#C
 of its own. A consequence is that a <code>cmaf</code> track and a <code>locmaf</code>
 track wrapping the same source <span class="bcp14">MAY</span> refer to the same <code>initData</code>
 entry; only the per-chunk Object encoding differs.<a href="#section-5-8" class="pilcrow">¶</a></p>
-<p id="section-5-9">DRM is signalled exactly as for a <code>cmaf</code> track, by the CMSF
+<p id="section-5-9">DRM is signaled exactly as for a <code>cmaf</code> track, by the CMSF
 <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> root-level <code>contentProtections</code> array referenced from the
 track entry by <code>contentProtectionRefIDs</code>, following the DASH-IF
 content-protection model <span>[<a href="#DASHIF-ECCP" class="cite xref">DASHIF-ECCP</a>]</span>. LOCMAF does <strong>not</strong> use the
@@ -1917,7 +1917,7 @@ the MOQT object, are the <code>mdat</code> payload.<a href="#section-7.1-11.3.1"
 <p id="section-7.1-12">Exactly one header element <span class="bcp14">MUST</span> appear in a moof-carrying LOCMAF
 Object, and it <span class="bcp14">MUST</span> be the last element before the <code>mdat</code> payload.
 A <code>genBox</code> that follows the header is malformed.<a href="#section-7.1-12" class="pilcrow">¶</a></p>
-<p id="section-7.1-13">The full-vs-delta distinction is signalled exclusively by the
+<p id="section-7.1-13">The full-vs-delta distinction is signaled exclusively by the
 header element_type (<code>2</code> for full, <code>3</code> for delta), never by the
 MOQT object position within a group:<a href="#section-7.1-13" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-7.1-14">
@@ -1952,7 +1952,7 @@ index greater than 0.<a href="#section-7.1-14.5.1" class="pilcrow">¶</a></p>
         </ol>
 <p id="section-7.1-15">An element_type not defined in the table above is not
 self-delimiting, so a receiver cannot skip it. A receiver that
-reads an unrecognised
+reads an unrecognized
 leading element_type <span class="bcp14">MUST</span> treat the Object as malformed and reject
 it; there is no generic skip for unknown top-level elements. This
 hard failure is deliberate: an element one receiver silently
@@ -2020,7 +2020,7 @@ in both contexts.<a href="#section-7.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.3-3">Parity governs <em>framing</em>: it tells a receiver how far every tuple
-extends, whether or not it recognises the field ID. The
+extends, whether or not it recognizes the field ID. The
 interpretation of the value bytes is per-field (<a href="#field-ref" class="auto internal xref">Section 10</a>).
 Three fields deviate from the absolute-in-full / delta-in-delta
 value encoding above:<a href="#section-7.3-3" class="pilcrow">¶</a></p>
@@ -2086,9 +2086,9 @@ decode:  n = (z &gt;&gt; 1) ^ -(z &amp; 1)   ; equivalently:
 </pre><a href="#section-7.4-3" class="pilcrow">¶</a>
 </div>
 <p id="section-7.4-4">The first few mappings: 0↔0, -1↔1, 1↔2, -2↔3, 2↔4, -3↔5, 3↔6, ….<a href="#section-7.4-4" class="pilcrow">¶</a></p>
-<p id="section-7.4-5">The encoded <code>z</code> is then serialised as an unsigned <code>vi64</code>; decoders
+<p id="section-7.4-5">The encoded <code>z</code> is then serialized as an unsigned <code>vi64</code>; decoders
 read the <code>vi64</code> and apply the decode rule above.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
-<p id="section-7.4-6">This zigzag mapping is widely used in compact binary serialisation
+<p id="section-7.4-6">This zigzag mapping is widely used in compact binary serialization
 formats; the description is included here for self-containment.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 <p id="section-7.4-7">LOCMAF uses zigzag <code>vi64</code> values wherever a signed value is written: for
 deltas against the in-group reference, and for the signed list
@@ -2234,7 +2234,7 @@ that LOCMAF does not otherwise carry. Two uses motivate it:<a href="#section-9-1
           <p id="section-9-2.1.1"><strong>In-band CMAF Header.</strong> In self-framed carriage
 (<a href="#outside-moqt" class="auto internal xref">Section 17</a>), a leading rawBoxes Object holds the <code>ftyp</code> +
 <code>moov</code> bytes, so a stored LOCMAF segment is self-contained and
-the initialisation bytes round-trip exactly.<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
+the initialization bytes round-trip exactly.<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-9-2.2">
           <p id="section-9-2.2.1"><strong>Verbatim chunk carriage.</strong> A chunk whose <code>moof</code> uses structures
@@ -2306,7 +2306,7 @@ reconstruction never otherwise needs.<a href="#section-9.3-1" class="pilcrow">¶
 <a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-reconstruction-2" class="section-name selfRef">Reconstruction</a>
         </h3>
 <p id="section-9.4-1">The reconstructed bytes of a rawBoxes Object are <code>boxes</code>, verbatim.
-This is also its canonical form (<a href="#canonical" class="auto internal xref">Section 15</a>): no normalisation
+This is also its canonical form (<a href="#canonical" class="auto internal xref">Section 15</a>): no normalization
 is applied, and canonical comparison is plain byte equality.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2847,7 +2847,7 @@ late-joining receiver needs at exactly that point.<a href="#section-12.2-2" clas
         </h3>
 <p id="section-12.3-1">Because delta encoding is additive, a field that was present in the
 previous chunk but is genuinely gone from the current chunk cannot
-be signalled by mere absence — absence means "unchanged." The
+be signaled by mere absence — absence means "unchanged." The
 deletion marker <code>deltaDeletedLocmafIDs</code> (ID 27, see
 <a href="#deletion-marker" class="auto internal xref">Section 10.4</a>) provides that signal: it lists the field IDs
 present in the previous chunk that no longer apply. The receiver
@@ -2890,7 +2890,7 @@ object reduces to the delta header element plus the <code>mdat</code> payload.<a
 metadata that EME-based decryption pipelines require. The track's
 key identifier, scheme, pattern parameters, and other static
 encryption defaults are carried in the CMAF Header's
-<code>tenc</code> box (inside <code>schi</code> inside <code>sinf</code>) and signalled in the
+<code>tenc</code> box (inside <code>schi</code> inside <code>sinf</code>) and signaled in the
 catalog through CMSF <code>contentProtections</code> and
 <code>contentProtectionRefIDs</code> (see <a href="#catalog" class="auto internal xref">Section 5</a>). The per-sample
 material that varies chunk to chunk is carried as <code>locmafHeader</code>
@@ -2910,7 +2910,7 @@ depend on it. Schemes with per-sample initialization vectors
 (<code>cenc</code>, <code>cbc1</code>, <code>cens</code>) carry them explicitly in
 <code>sencInitializationVector</code> (ID 9) on every chunk; LOCMAF defines
 no IV derivation or prediction rule.<a href="#section-13.1-1" class="pilcrow">¶</a></p>
-<p id="section-13.1-2">One scheme has scheme-specific behaviour. Under <code>cbcs</code> (AES-128-CBC
+<p id="section-13.1-2">One scheme has scheme-specific behavior. Under <code>cbcs</code> (AES-128-CBC
 subsample pattern encryption), the constant initialization vector
 (<code>tenc.default_constant_IV</code>) and the pattern
 (<code>default_crypt_byte_block</code> / <code>default_skip_byte_block</code>) travel in
@@ -2992,7 +2992,7 @@ them <span class="bcp14">MUST</span> use plain CMAF packaging:<a href="#section-
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>pssh</code> (per-fragment)</td>
-              <td class="text-left" rowspan="1" colspan="1">License-acquisition information is signalled via the CMSF <code>contentProtections</code> mechanism (see <a href="#catalog" class="auto internal xref">Section 5</a>), per <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §7.4.3.</td>
+              <td class="text-left" rowspan="1" colspan="1">License-acquisition information is signaled via the CMSF <code>contentProtections</code> mechanism (see <a href="#catalog" class="auto internal xref">Section 5</a>), per <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §7.4.3.</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
@@ -3068,7 +3068,7 @@ applies to moof-carrying Objects.<a href="#section-15-2" class="pilcrow">¶</a><
 alone, it is invariant to every encoder representation choice:
 where the group was split into full and delta chunks, field
 ordering, redundant fields such as strict-<code>cmf2</code> <code>tfhd</code> defaults,
-and whether a value travelled as a per-sample list or as a default.
+and whether a value traveled as a per-sample list or as a default.
 Two LOCMAF encodings decode to the same canonical bytes iff they
 carry the same media — which is exactly the comparison an interop
 harness needs.<a href="#section-15-3" class="pilcrow">¶</a></p>
@@ -3188,7 +3188,7 @@ canonical comparison uses 0.)<a href="#section-15.3-1" class="pilcrow">¶</a></p
 <p id="section-15.4-3">so sample-data offsets are relative to the start of the containing
 <code>moof</code> (<span>[<a href="#ISOBMFF" class="cite xref">ISOBMFF</a>]</span>). Each optional default sets its flag and emits
 its value iff the effective values call for it — wire presence is
-irrelevant, so a strict-<code>cmf2</code> encoding (<a href="#scope" class="auto internal xref">Section 4</a>) canonicalises
+irrelevant, so a strict-<code>cmf2</code> encoding (<a href="#scope" class="auto internal xref">Section 4</a>) canonicalizes
 identically to its minimal counterpart:<a href="#section-15.4-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15.4-4.1">
@@ -3467,8 +3467,8 @@ the same effective values and thus the same canonical CMAF.<a href="#section-15.
         <h3 id="name-implementation-note">
 <a href="#section-15.10" class="section-number selfRef">15.10. </a><a href="#name-implementation-note" class="section-name selfRef">Implementation note</a>
         </h3>
-<p id="section-15.10-1">Canonical reconstruction requires a normalisation pass: an
-implementation <span class="bcp14">MUST NOT</span> rely on incidental serialiser output (e.g.
+<p id="section-15.10-1">Canonical reconstruction requires a normalization pass: an
+implementation <span class="bcp14">MUST NOT</span> rely on incidental serializer output (e.g.
 box order or <code>tr_flags</code> packing produced by a general-purpose ISO
 BMFF writer) to match the canonical bytes. Golden vectors compare
 the reconstructed genBox and <code>moof</code> bytes exactly; the <code>mdat</code>
@@ -3494,9 +3494,9 @@ individual media frames.<a href="#section-16-1" class="pilcrow">¶</a></p>
 <li class="normal" id="section-16-2.1">
           <p id="section-16-2.1.1"><strong>Chunk interfaces.</strong> Reconstruct a CMAF chunk per <a href="#canonical" class="auto internal xref">Section 15</a>
 and feed it to an interface that accepts ISO BMFF / CMAF input,
-initialised with the CMAF Header (see <a href="#cmaf-header" class="auto internal xref">Section 6</a>). In the
+initialized with the CMAF Header (see <a href="#cmaf-header" class="auto internal xref">Section 6</a>). In the
 browser this is Media Source Extensions (MSE): append the chunk
-to a <code>SourceBuffer</code> whose initialisation segment is the CMAF
+to a <code>SourceBuffer</code> whose initialization segment is the CMAF
 Header. Native media pipelines built around a fragmented-MP4
 demuxer consume the same reconstructed chunks.<a href="#section-16-2.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -3552,11 +3552,11 @@ and delta chunks reference the preceding Object in the same segment
 directly a file on disk, and segments concatenate into longer
 files that remain parseable, since every Object is length-prefixed
 and every full header re-anchors decoding. The CMAF Header is
-either stored alongside, as for CMAF initialisation and media
+either stored alongside, as for CMAF initialization and media
 segments, or carried in-band as a leading length-prefixed rawBoxes
 Object (<a href="#rawboxes" class="auto internal xref">Section 9</a>) holding the <code>ftyp</code> + <code>moov</code> bytes verbatim.
 The in-band form makes the file self-contained: a reader obtains
-the initialisation bytes exactly as published and decodes every
+the initialization bytes exactly as published and decodes every
 subsequent Object against them, just as over MOQT.<a href="#section-17-5" class="pilcrow">¶</a></p>
 <p id="section-17-6">The framing also maps directly onto low-latency HTTP delivery:<a href="#section-17-6" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -3564,7 +3564,7 @@ subsequent Object against them, just as over MOQT.<a href="#section-17-5" class=
           <p id="section-17-7.1.1">In low-latency DASH, a LOCMAF segment is delivered progressively
 under chunked transfer encoding, each length-prefixed Object
 taking the role a CMAF chunk has today, with the CMAF Header
-referenced from the MPD as the initialisation segment.<a href="#section-17-7.1.1" class="pilcrow">¶</a></p>
+referenced from the MPD as the initialization segment.<a href="#section-17-7.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-17-7.2">
           <p id="section-17-7.2.1">In low-latency HLS, each part carries one or more
@@ -3577,10 +3577,10 @@ envelope, concatenating the parts of a segment yields the same
 bytes as the DASH segment and the same file as stored at rest.<a href="#section-17-7.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-17-8">The catalog signalling of <a href="#catalog" class="auto internal xref">Section 5</a> has no MPD or playlist
+<p id="section-17-8">The catalog signaling of <a href="#catalog" class="auto internal xref">Section 5</a> has no MPD or playlist
 counterpart defined here: at minimum the packaging, the
-<code>locmafVersion</code>, the initialisation-data reference, and any
-content-protection signalling need manifest-level equivalents, and
+<code>locmafVersion</code>, the initialization-data reference, and any
+content-protection signaling need manifest-level equivalents, and
 the segments need a dedicated media type (such as <code>video/locmaf</code>,
 <code>audio/locmaf</code>, or <code>application/locmaf</code>) so that clients do not
 mistake them for CMAF. Registration of such media types would
