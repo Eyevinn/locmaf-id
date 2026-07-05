@@ -1328,9 +1328,10 @@ The canonical `tr_flags`, set and emitted in this order:
   any effective composition-time offset ≠ 0.
 
 The `trun` field layout is `sample_count`, then `data_offset`, then
-(if `first-sample-flags-present`) `first_sample_flags` (which is
-`flags[0]`), then the per-sample records populated from the
-effective vectors, each carrying its present fields in ISO order:
+(if `first-sample-flags-present`) `first_sample_flags` (the effective
+flags of the first sample), then the per-sample records populated
+from the effective vectors, each carrying its present fields in ISO
+order:
 `sample_duration`, `sample_size`, `sample_flags`,
 `sample_composition_time_offset`. When `trun.version == 1` the
 composition-time offset is a signed 32-bit value; when
