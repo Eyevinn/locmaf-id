@@ -117,7 +117,7 @@ not a transport — MOQT {{MOQT}} is the transport.
 
 This document specifies the LOCMAF Object encoding, the generic box
 and raw-boxes elements, the full and delta chunk encodings, the
-catalog signalling (aligned with {{CMSF}}), the canonical CMAF
+catalog signaling (aligned with {{CMSF}}), the canonical CMAF
 reconstruction, and the DRM box round-trip. Auxiliary top-level boxes
 such as `uuid` ride alongside the `moof` ({{genbox}}), and content
 outside the field model can be carried as whole boxes verbatim
@@ -151,9 +151,9 @@ CMAF segment:
   in LOCMAF the segment corresponds to one MOQT group.
 
 CMAF Header:
-: The `ftyp` + `moov` pair that initialises a CMAF track. Also called
-  an *initialisation segment* in DASH parlance and carried or
-  referenced as initialisation data by CMSF {{CMSF}} catalogs.
+: The `ftyp` + `moov` pair that initializes a CMAF track. Also called
+  an *initialization segment* in DASH parlance and carried or
+  referenced as initialization data by CMSF {{CMSF}} catalogs.
 
 MOQT group, MOQT object:
 : As defined in {{MOQT}}.
@@ -259,7 +259,7 @@ does not break LOCMAF:
    frame has an exact integer duration (e.g. 48 000 for 48 kHz AAC,
    60 000 for 60000/1001 fps video).
 2. **Stable `trex` defaults.** Keeping `trex` consistent across the
-   stream maximises what can be omitted from each chunk header.
+   stream maximizes what can be omitted from each chunk header.
 
 ## Optional encoder modes
 
@@ -269,15 +269,15 @@ flags, sample-description index) in the full chunk header even when
 they match `trex`. This costs a handful of bytes per group but
 produces reconstructed CMAF chunks in which each chunk is a
 self-decodable single-chunk fragment per {{CMAF}} §7.7.3. It need
-not be signalled, since it does not affect compatibility between
+not be signaled, since it does not affect compatibility between
 encoders and decoders. Strict `cmf2` mode is an opt-in encoder
 tweak and is **not** the canonical baseline used for conformance;
 the canonical reconstruction defined in {{canonical}} emits a
 `tfhd` default only when it differs from `trex`.
 
-# Catalog Signalling {#catalog}
+# Catalog Signaling {#catalog}
 
-LOCMAF media is signalled in a CMSF {{CMSF}} catalog. This document
+LOCMAF media is signaled in a CMSF {{CMSF}} catalog. This document
 extends the allowed `packaging` values defined in {{MSF}} with one
 new entry, in the same manner that {{CMSF}} adds `"cmaf"`:
 
@@ -310,7 +310,7 @@ same source under an alternative packaging, it MAY select that
 instead.
 
 The unknown-field rule of {{parity}} covers additive evolution
-within a version; `locmafVersion` signals behavioural changes that
+within a version; `locmafVersion` signals behavioral changes that
 reinterpret existing wire syntax, which a receiver cannot detect
 from the wire bytes alone.
 
@@ -325,7 +325,7 @@ of its own. A consequence is that a `cmaf` track and a `locmaf`
 track wrapping the same source MAY refer to the same `initData`
 entry; only the per-chunk Object encoding differs.
 
-DRM is signalled exactly as for a `cmaf` track, by the CMSF
+DRM is signaled exactly as for a `cmaf` track, by the CMSF
 {{CMSF}} root-level `contentProtections` array referenced from the
 track entry by `contentProtectionRefIDs`, following the DASH-IF
 content-protection model {{DASHIF-ECCP}}. LOCMAF does **not** use the
@@ -446,7 +446,7 @@ Exactly one header element MUST appear in a moof-carrying LOCMAF
 Object, and it MUST be the last element before the `mdat` payload.
 A `genBox` that follows the header is malformed.
 
-The full-vs-delta distinction is signalled exclusively by the
+The full-vs-delta distinction is signaled exclusively by the
 header element_type (`2` for full, `3` for delta), never by the
 MOQT object position within a group:
 
@@ -471,7 +471,7 @@ MOQT object position within a group:
 
 An element_type not defined in the table above is not
 self-delimiting, so a receiver cannot skip it. A receiver that
-reads an unrecognised
+reads an unrecognized
 leading element_type MUST treat the Object as malformed and reject
 it; there is no generic skip for unknown top-level elements. This
 hard failure is deliberate: an element one receiver silently
@@ -528,7 +528,7 @@ IANA-registered.
   in both contexts.
 
 Parity governs *framing*: it tells a receiver how far every tuple
-extends, whether or not it recognises the field ID. The
+extends, whether or not it recognizes the field ID. The
 interpretation of the value bytes is per-field ({{field-ref}}).
 Three fields deviate from the absolute-in-full / delta-in-delta
 value encoding above:
@@ -588,10 +588,10 @@ decode:  n = (z >> 1) ^ -(z & 1)   ; equivalently:
 
 The first few mappings: 0↔0, -1↔1, 1↔2, -2↔3, 2↔4, -3↔5, 3↔6, ….
 
-The encoded `z` is then serialised as an unsigned `vi64`; decoders
+The encoded `z` is then serialized as an unsigned `vi64`; decoders
 read the `vi64` and apply the decode rule above.
 
-This zigzag mapping is widely used in compact binary serialisation
+This zigzag mapping is widely used in compact binary serialization
 formats; the description is included here for self-containment.
 
 LOCMAF uses zigzag `vi64` values wherever a signed value is written: for
@@ -704,7 +704,7 @@ that LOCMAF does not otherwise carry. Two uses motivate it:
 - **In-band CMAF Header.** In self-framed carriage
   ({{outside-moqt}}), a leading rawBoxes Object holds the `ftyp` +
   `moov` bytes, so a stored LOCMAF segment is self-contained and
-  the initialisation bytes round-trip exactly.
+  the initialization bytes round-trip exactly.
 - **Verbatim chunk carriage.** A chunk whose `moof` uses structures
   outside the LOCMAF field model rides verbatim, at plain-CMAF
   cost, without forcing the whole track onto plain CMAF packaging.
@@ -758,7 +758,7 @@ reconstruction never otherwise needs.
 ## Reconstruction
 
 The reconstructed bytes of a rawBoxes Object are `boxes`, verbatim.
-This is also its canonical form ({{canonical}}): no normalisation
+This is also its canonical form ({{canonical}}): no normalization
 is applied, and canonical comparison is plain byte equality.
 
 # Field Reference {#field-ref}
@@ -1059,7 +1059,7 @@ late-joining receiver needs at exactly that point.
 
 Because delta encoding is additive, a field that was present in the
 previous chunk but is genuinely gone from the current chunk cannot
-be signalled by mere absence — absence means "unchanged." The
+be signaled by mere absence — absence means "unchanged." The
 deletion marker `deltaDeletedLocmafIDs` (ID 27, see
 {{deletion-marker}}) provides that signal: it lists the field IDs
 present in the previous chunk that no longer apply. The receiver
@@ -1093,7 +1093,7 @@ LOCMAF preserves the per-sample Common Encryption (CENC) {{CENC}}
 metadata that EME-based decryption pipelines require. The track's
 key identifier, scheme, pattern parameters, and other static
 encryption defaults are carried in the CMAF Header's
-`tenc` box (inside `schi` inside `sinf`) and signalled in the
+`tenc` box (inside `schi` inside `sinf`) and signaled in the
 catalog through CMSF `contentProtections` and
 `contentProtectionRefIDs` (see {{catalog}}). The per-sample
 material that varies chunk to chunk is carried as `locmafHeader`
@@ -1112,7 +1112,7 @@ depend on it. Schemes with per-sample initialization vectors
 `sencInitializationVector` (ID 9) on every chunk; LOCMAF defines
 no IV derivation or prediction rule.
 
-One scheme has scheme-specific behaviour. Under `cbcs` (AES-128-CBC
+One scheme has scheme-specific behavior. Under `cbcs` (AES-128-CBC
 subsample pattern encryption), the constant initialization vector
 (`tenc.default_constant_IV`) and the pattern
 (`default_crypt_byte_block` / `default_skip_byte_block`) travel in
@@ -1140,7 +1140,7 @@ them MUST use plain CMAF packaging:
 | Box | Reason for exclusion |
 |-----|----------------------|
 | `sgpd` / `sbgp` | Mid-fragment key rotation via `seig` sample groups is out of scope; KID changes MUST align with fragment boundaries (see {{scope}}). |
-| `pssh` (per-fragment) | License-acquisition information is signalled via the CMSF `contentProtections` mechanism (see {{catalog}}), per {{CMAF}} §7.4.3. |
+| `pssh` (per-fragment) | License-acquisition information is signaled via the CMSF `contentProtections` mechanism (see {{catalog}}), per {{CMAF}} §7.4.3. |
 | `subs` | Sub-sample information for image subtitle profiles (e.g. `im1i`) is out of scope. |
 
 # Event-Only Tracks {#event-only}
@@ -1197,7 +1197,7 @@ Because the canonical form is a function of the effective values
 alone, it is invariant to every encoder representation choice:
 where the group was split into full and delta chunks, field
 ordering, redundant fields such as strict-`cmf2` `tfhd` defaults,
-and whether a value travelled as a per-sample list or as a default.
+and whether a value traveled as a per-sample list or as a default.
 Two LOCMAF encodings decode to the same canonical bytes iff they
 carry the same media — which is exactly the comparison an interop
 harness needs.
@@ -1274,7 +1274,7 @@ canonical comparison uses 0.)
 so sample-data offsets are relative to the start of the containing
 `moof` ({{ISOBMFF}}). Each optional default sets its flag and emits
 its value iff the effective values call for it — wire presence is
-irrelevant, so a strict-`cmf2` encoding ({{scope}}) canonicalises
+irrelevant, so a strict-`cmf2` encoding ({{scope}}) canonicalizes
 identically to its minimal counterpart:
 
 - `sample-description-index-present` (`0x000002`) iff the effective
@@ -1483,8 +1483,8 @@ the same effective values and thus the same canonical CMAF.
 
 ## Implementation note
 
-Canonical reconstruction requires a normalisation pass: an
-implementation MUST NOT rely on incidental serialiser output (e.g.
+Canonical reconstruction requires a normalization pass: an
+implementation MUST NOT rely on incidental serializer output (e.g.
 box order or `tr_flags` packing produced by a general-purpose ISO
 BMFF writer) to match the canonical bytes. Golden vectors compare
 the reconstructed genBox and `moof` bytes exactly; the `mdat`
@@ -1503,9 +1503,9 @@ individual media frames.
 
 - **Chunk interfaces.** Reconstruct a CMAF chunk per {{canonical}}
   and feed it to an interface that accepts ISO BMFF / CMAF input,
-  initialised with the CMAF Header (see {{cmaf-header}}). In the
+  initialized with the CMAF Header (see {{cmaf-header}}). In the
   browser this is Media Source Extensions (MSE): append the chunk
-  to a `SourceBuffer` whose initialisation segment is the CMAF
+  to a `SourceBuffer` whose initialization segment is the CMAF
   Header. Native media pipelines built around a fragmented-MP4
   demuxer consume the same reconstructed chunks.
 - **Frame interfaces.** Slice the `mdat` payload into per-sample
@@ -1556,11 +1556,11 @@ The same framing doubles as a storage format. A LOCMAF segment is
 directly a file on disk, and segments concatenate into longer
 files that remain parseable, since every Object is length-prefixed
 and every full header re-anchors decoding. The CMAF Header is
-either stored alongside, as for CMAF initialisation and media
+either stored alongside, as for CMAF initialization and media
 segments, or carried in-band as a leading length-prefixed rawBoxes
 Object ({{rawboxes}}) holding the `ftyp` + `moov` bytes verbatim.
 The in-band form makes the file self-contained: a reader obtains
-the initialisation bytes exactly as published and decodes every
+the initialization bytes exactly as published and decodes every
 subsequent Object against them, just as over MOQT.
 
 The framing also maps directly onto low-latency HTTP delivery:
@@ -1568,7 +1568,7 @@ The framing also maps directly onto low-latency HTTP delivery:
 - In low-latency DASH, a LOCMAF segment is delivered progressively
   under chunked transfer encoding, each length-prefixed Object
   taking the role a CMAF chunk has today, with the CMAF Header
-  referenced from the MPD as the initialisation segment.
+  referenced from the MPD as the initialization segment.
 - In low-latency HLS, each part carries one or more
   length-prefixed Objects. A part advertised as independent begins
   with an Object carrying a full header, so that a client joining
@@ -1578,10 +1578,10 @@ The framing also maps directly onto low-latency HTTP delivery:
   envelope, concatenating the parts of a segment yields the same
   bytes as the DASH segment and the same file as stored at rest.
 
-The catalog signalling of {{catalog}} has no MPD or playlist
+The catalog signaling of {{catalog}} has no MPD or playlist
 counterpart defined here: at minimum the packaging, the
-`locmafVersion`, the initialisation-data reference, and any
-content-protection signalling need manifest-level equivalents, and
+`locmafVersion`, the initialization-data reference, and any
+content-protection signaling need manifest-level equivalents, and
 the segments need a dedicated media type (such as `video/locmaf`,
 `audio/locmaf`, or `application/locmaf`) so that clients do not
 mistake them for CMAF. Registration of such media types would
