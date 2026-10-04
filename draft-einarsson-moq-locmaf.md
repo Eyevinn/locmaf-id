@@ -699,7 +699,7 @@ verbatim — box headers included — as the entire payload of a LOCMAF
 Object. Where a `genBox` carries one pre-`moof` box alongside a
 `locmafHeader`, a `rawBoxes` element replaces the header and `mdat`
 entirely: it is the escape from the moof-header model for content
-that LOCMAF does not otherwise carry. Two uses motivate it:
+that LOCMAF does not otherwise carry. Three uses motivate it:
 
 - **In-band CMAF Header.** In self-framed carriage
   ({{outside-moqt}}), a leading rawBoxes Object holds the `ftyp` +
@@ -708,6 +708,9 @@ that LOCMAF does not otherwise carry. Two uses motivate it:
 - **Verbatim chunk carriage.** A chunk whose `moof` uses structures
   outside the LOCMAF field model rides verbatim, at plain-CMAF
   cost, without forcing the whole track onto plain CMAF packaging.
+- **Trailing boxes.** Boxes that follow the last `mdat` of a CMAF
+  segment ride as the last Object of the group
+  ({{trailing-boxes}}).
 
 ## Byte layout
 
@@ -760,6 +763,29 @@ reconstruction never otherwise needs.
 The reconstructed bytes of a rawBoxes Object are `boxes`, verbatim.
 This is also its canonical form ({{canonical}}): no normalization
 is applied, and canonical comparison is plain byte equality.
+
+## Trailing boxes {#trailing-boxes}
+
+Some boxes can only be written once a segment is complete, such as
+a signature over the whole segment. Placed after the segment's
+last `mdat`, they let every chunk be sent as soon as it is
+produced. Such boxes precede no `moof` in the group, so no
+`genBox` can carry them. A publisher carries them as a rawBoxes
+Object that is the last Object of the group, after its last
+moof-carrying Object. Concatenating the reconstructed Objects of
+the group then yields the segment with the trailing boxes after
+its last `mdat`, as in the source.
+
+Only boxes after the last `mdat` of the group are trailing. A box
+between an `mdat` and the next `moof` of the same group is a
+`genBox` of that `moof`'s Object ({{genbox}}), never a separate
+rawBoxes Object, so each segment has a single encoding for
+canonical comparison ({{canonical}}). The delta-state reset of a
+trailing rawBoxes Object has no effect, since no moof-header
+element follows it in the group. In self-framed carriage
+({{outside-moqt}}), a reader tells a trailing rawBoxes Object from
+an in-band CMAF Header by position: it follows the moof-carrying
+Objects of its segment.
 
 # Field Reference {#field-ref}
 
