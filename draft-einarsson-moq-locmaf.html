@@ -25,26 +25,26 @@ Encryption) pipelines, and a canonical byte-identical
 reconstruction — independent of the encoder's representation
 choices — is defined for conformance testing. 
     " name="description">
-<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="xml2rfc 3.34.1" name="generator">
 <meta content="moq" name="keyword">
 <meta content="cmaf" name="keyword">
 <meta content="live streaming" name="keyword">
 <meta content="low latency" name="keyword">
 <meta content="draft-einarsson-moq-locmaf-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.0
-    Python 3.14.5
-    ConfigArgParse 1.7.5
+  xml2rfc 3.34.1
+    Python 3.14.8
+    ConfigArgParse 1.8.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.10.0
+    platformdirs 4.12.2
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.2
+    wcwidth 0.9.1
 -->
 <link href="draft-einarsson-moq-locmaf.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1065,11 +1065,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">LOCMAF</td>
-<td class="right">July 2026</td>
+<td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Einarsson</td>
-<td class="center">Expires 6 January 2027</td>
+<td class="center">Expires 7 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1082,12 +1082,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-einarsson-moq-locmaf-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-05" class="published">5 July 2026</time>
+<time datetime="2026-10-04" class="published">4 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-06">6 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-07">7 April 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1153,7 +1153,7 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 6 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 7 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1262,6 +1262,9 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
                 <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-reconstruction-2" class="internal xref">Reconstruction</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
+                <p id="section-toc.1-1.9.2.5.1"><a href="#section-9.5" class="auto internal xref">9.5</a>.  <a href="#name-trailing-boxes" class="internal xref">Trailing boxes</a></p>
 </li>
             </ul>
 </li>
@@ -2228,7 +2231,7 @@ verbatim — box headers included — as the entire payload of a LOCMAF
 Object. Where a <code>genBox</code> carries one pre-<code>moof</code> box alongside a
 <code>locmafHeader</code>, a <code>rawBoxes</code> element replaces the header and <code>mdat</code>
 entirely: it is the escape from the moof-header model for content
-that LOCMAF does not otherwise carry. Two uses motivate it:<a href="#section-9-1" class="pilcrow">¶</a></p>
+that LOCMAF does not otherwise carry. Three uses motivate it:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9-2.1">
           <p id="section-9-2.1.1"><strong>In-band CMAF Header.</strong> In self-framed carriage
@@ -2240,6 +2243,11 @@ the initialization bytes round-trip exactly.<a href="#section-9-2.1.1" class="pi
           <p id="section-9-2.2.1"><strong>Verbatim chunk carriage.</strong> A chunk whose <code>moof</code> uses structures
 outside the LOCMAF field model rides verbatim, at plain-CMAF
 cost, without forcing the whole track onto plain CMAF packaging.<a href="#section-9-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-2.3">
+          <p id="section-9-2.3.1"><strong>Trailing boxes.</strong> Boxes that follow the last <code>mdat</code> of a CMAF
+segment ride as the last Object of the group
+(<a href="#trailing-boxes" class="auto internal xref">Section 9.5</a>).<a href="#section-9-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="byte-layout-1">
@@ -2308,6 +2316,32 @@ reconstruction never otherwise needs.<a href="#section-9.3-1" class="pilcrow">¶
 <p id="section-9.4-1">The reconstructed bytes of a rawBoxes Object are <code>boxes</code>, verbatim.
 This is also its canonical form (<a href="#canonical" class="auto internal xref">Section 15</a>): no normalization
 is applied, and canonical comparison is plain byte equality.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trailing-boxes">
+<section id="section-9.5">
+        <h3 id="name-trailing-boxes">
+<a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-trailing-boxes" class="section-name selfRef">Trailing boxes</a>
+        </h3>
+<p id="section-9.5-1">Some boxes can only be written once a segment is complete, such as
+a signature over the whole segment. Placed after the segment's
+last <code>mdat</code>, they let every chunk be sent as soon as it is
+produced. Such boxes precede no <code>moof</code> in the group, so no
+<code>genBox</code> can carry them. A publisher carries them as a rawBoxes
+Object that is the last Object of the group, after its last
+moof-carrying Object. Concatenating the reconstructed Objects of
+the group then yields the segment with the trailing boxes after
+its last <code>mdat</code>, as in the source.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
+<p id="section-9.5-2">Only boxes after the last <code>mdat</code> of the group are trailing. A box
+between an <code>mdat</code> and the next <code>moof</code> of the same group is a
+<code>genBox</code> of that <code>moof</code>'s Object (<a href="#genbox" class="auto internal xref">Section 8</a>), never a separate
+rawBoxes Object, so each segment has a single encoding for
+canonical comparison (<a href="#canonical" class="auto internal xref">Section 15</a>). The delta-state reset of a
+trailing rawBoxes Object has no effect, since no moof-header
+element follows it in the group. In self-framed carriage
+(<a href="#outside-moqt" class="auto internal xref">Section 17</a>), a reader tells a trailing rawBoxes Object from
+an in-band CMAF Header by position: it follows the moof-carrying
+Objects of its segment.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
