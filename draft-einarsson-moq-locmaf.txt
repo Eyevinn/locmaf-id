@@ -198,7 +198,7 @@ Table of Contents
    capitals, as shown here.
 
    Throughout this document, vi64 denotes a variable-length integer as
-   defined in Section 1.4.1 of [MOQT].
+   defined in Section 8.1 of [MOQT].
 
    The following terms are used throughout this document:
 
@@ -208,12 +208,12 @@ Table of Contents
       smallest CMAF addressable media object.
 
    CMAF fragment:  One or more CMAF chunks whose first chunk starts at a
-      Stream Access Point ([CMAF] §7.3.2.2).  A fragment is logically a
+      Stream Access Point ([CMAF] §7.3.2.4).  A fragment is logically a
       single MovieFragmentBox worth of samples; in "chunked" CMAF the
       samples are split across multiple smaller moof + mdat pairs.
 
    CMAF segment:  One or more CMAF fragments in decode order ([CMAF]
-      §7.3.2.4).  The segment is the typical unit of HTTP delivery in
+      §7.3.3.1).  The segment is the typical unit of HTTP delivery in
       DASH and HLS-fMP4; in LOCMAF the segment corresponds to one MOQT
       group.
 
@@ -278,8 +278,8 @@ Table of Contents
    carries Objects of one group in ascending Object ID order on a single
    stream, while datagrams are unordered.  A publisher MUST therefore
    send all Objects of a LOCMAF group in a single subgroup, and MUST NOT
-   use the Datagram forwarding preference for LOCMAF tracks.  The first
-   moof-carrying Object of each group MUST be a full LOCMAF chunk so a
+   use the Datagram Delivery Mode for LOCMAF tracks.  The first moof-
+   carrying Object of each group MUST be a full LOCMAF chunk so a
    subscriber tuning in at a group boundary has a complete reference
    (see Section 7.1).
 
@@ -1916,7 +1916,7 @@ Table of Contents
 
    [CENC]     "Information technology — MPEG systems technologies — Part
               7: Common encryption in ISO base media file format files",
-              ISO/IEC 23001-7:2024, 2024.
+              ISO/IEC 23001-7:2023, 2023.
 
    [CMAF]     "Information technology — Multimedia application format
               (MPEG-A) — Part 19: Common media application format (CMAF)
@@ -1930,19 +1930,19 @@ Table of Contents
 
    [ISOBMFF]  "Information technology — Coding of audio-visual objects —
               Part 12: ISO base media file format", ISO/
-              IEC 14496-12:2024, 2024.
+              IEC 14496-12:2026, 2026.
 
    [LOC]      Zanaty, M., Nandakumar, S., and P. Thatcher, "Low Overhead
               Media Container", Work in Progress, Internet-Draft, draft-
-              ietf-moq-loc-02, 15 March 2026,
+              ietf-moq-loc-05, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-loc-
-              02>.
+              05>.
 
    [MOQT]     Nandakumar, S., Vasiliev, V., Swett, I., and A. Frindell,
               "Media over QUIC Transport", Work in Progress, Internet-
-              Draft, draft-ietf-moq-transport-18, 12 May 2026,
+              Draft, draft-ietf-moq-transport-23, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              transport-18>.
+              transport-23>.
 
    [MSF]      Law, W. and S. Nandakumar, "MOQT Streaming Format", Work
               in Progress, Internet-Draft, draft-ietf-moq-msf-01, 2 June
