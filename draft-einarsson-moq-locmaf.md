@@ -63,6 +63,13 @@ informative:
     title: "C2PA Technical Specification, Version 2.4"
     author:
       org: Coalition for Content Provenance and Authenticity
+  RFC3095:
+  RFC5795:
+  HEIF-AMD2:
+    title: "Information technology — High efficiency coding and media delivery in heterogeneous environments — Part 12: Image File Format — Amendment 2: Low-overhead image file format"
+    seriesinfo:
+      ISO/IEC: 23008-12:2025/Amd 2:2026
+    date: 2026
   LOCMAF-REPO:
     target: https://github.com/Eyevinn/locmaf
     title: "LOCMAF — reference implementation, conformance test vectors, golden files, and worked examples"
@@ -128,6 +135,37 @@ such as `uuid` ride alongside the `moof` ({{genbox}}), and content
 outside the field model can be carried as whole boxes verbatim
 ({{rawboxes}}). A reference implementation, conformance test vectors,
 golden files, and worked examples are published at {{LOCMAF-REPO}}.
+
+## Related Work {#related-work}
+
+LOCMAF combines two techniques that each have a precedent: delta
+coding of headers against a shared reference, and a compact form
+that the receiver expands into standard ISO BMFF boxes.
+
+RObust Header Compression (ROHC) {{RFC3095}} {{RFC5795}} compresses
+headers such as IP, UDP, and RTP on a link. Compressor and
+decompressor each keep a context, which packets carrying complete
+headers initialize; later headers are sent encoded relative to it.
+Because packets on the link can be lost or damaged, ROHC verifies
+decompressed headers with CRCs and repairs the context through
+feedback from the decompressor or, on one-way links, through
+periodic refreshes. LOCMAF ties its reference to a MOQT group
+instead. The group starts with a full chunk, its Objects arrive in
+order on one subgroup stream, and a later full chunk re-anchors the
+reference much like a ROHC refresh. After a gap, the receiver
+resumes at the next full chunk or group (see {{mapping}}).
+
+The Low-overhead Image File Format, added to the HEIF image file
+format by Amendment 2 of ISO/IEC 23008-12 {{HEIF-AMD2}}, uses a
+compact form for still images. A single MinimizedImageBox (`mini`)
+replaces the `meta` and `mdat` boxes of a HEIF file. It fixes the
+item structure, packs the remaining values at bit level, and leaves
+out values that have defaults, which can shrink the container
+overhead of a small image from a few hundred bytes to a few tens of
+bytes. A reader treats the `mini` box as if the equivalent `meta`
+and `mdat` boxes were present, much as a LOCMAF receiver expands an
+Object into a CMAF chunk (see {{canonical}}). The format describes
+one standalone image, so it has no delta coding.
 
 # Conventions and Definitions
 
