@@ -30,10 +30,10 @@ author:
     email: torbjorn.einarsson@eyevinn.se
 
 normative:
-  MOQT: I-D.draft-ietf-moq-transport-18
+  MOQT: I-D.draft-ietf-moq-transport-23
   CMSF: I-D.draft-ietf-moq-cmsf-01
   MSF:  I-D.draft-ietf-moq-msf-01
-  LOC:  I-D.draft-ietf-moq-loc-02
+  LOC:  I-D.draft-ietf-moq-loc-05
   CMAF:
     title: "Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media"
     seriesinfo:
@@ -42,13 +42,13 @@ normative:
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO base media file format"
     seriesinfo:
-      ISO/IEC: 14496-12:2024
-    date: 2024
+      ISO/IEC: 14496-12:2026
+    date: 2026
   CENC:
     title: "Information technology — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files"
     seriesinfo:
-      ISO/IEC: 23001-7:2024
-    date: 2024
+      ISO/IEC: 23001-7:2023
+    date: 2023
 
 informative:
   DASHIF-ECCP:
@@ -134,7 +134,7 @@ golden files, and worked examples are published at {{LOCMAF-REPO}}.
 {::boilerplate bcp14-tagged}
 
 Throughout this document, `vi64` denotes a variable-length integer
-as defined in {{Section 1.4.1 of MOQT}}.
+as defined in {{Section 8.1 of MOQT}}.
 
 The following terms are used throughout this document:
 
@@ -146,12 +146,12 @@ CMAF chunk:
 
 CMAF fragment:
 : One or more CMAF chunks whose first chunk starts at a Stream Access
-  Point ({{CMAF}} §7.3.2.2). A fragment is logically a single
+  Point ({{CMAF}} §7.3.2.4). A fragment is logically a single
   `MovieFragmentBox` worth of samples; in "chunked" CMAF the samples
   are split across multiple smaller `moof` + `mdat` pairs.
 
 CMAF segment:
-: One or more CMAF fragments in decode order ({{CMAF}} §7.3.2.4). The
+: One or more CMAF fragments in decode order ({{CMAF}} §7.3.3.1). The
   segment is the typical unit of HTTP delivery in DASH and HLS-fMP4;
   in LOCMAF the segment corresponds to one MOQT group.
 
@@ -219,8 +219,8 @@ group. MOQT {{MOQT}} guarantees ordering only within a *subgroup*:
 a subgroup carries Objects of one group in ascending Object ID
 order on a single stream, while datagrams are unordered. A
 publisher MUST therefore send all Objects of a LOCMAF group in a
-single subgroup, and MUST NOT use the Datagram forwarding
-preference for LOCMAF tracks. The first moof-carrying Object of
+single subgroup, and MUST NOT use the Datagram Delivery Mode
+for LOCMAF tracks. The first moof-carrying Object of
 each group MUST be a full LOCMAF chunk so a subscriber tuning in at
 a group boundary has a complete reference (see
 {{element-sequence}}).
