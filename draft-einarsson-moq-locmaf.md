@@ -58,6 +58,11 @@ informative:
   DASH-IF-INGEST:
     target: https://dashif.org/Ingest/
     title: "DASH-IF Live Media Ingest Protocol"
+  C2PA:
+    target: https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html
+    title: "C2PA Technical Specification, Version 2.4"
+    author:
+      org: Coalition for Content Provenance and Authenticity
   LOCMAF-REPO:
     target: https://github.com/Eyevinn/locmaf
     title: "LOCMAF — reference implementation, conformance test vectors, golden files, and worked examples"
@@ -310,9 +315,11 @@ same source under an alternative packaging, it MAY select that
 instead.
 
 The unknown-field rule of {{parity}} covers additive evolution
-within a version; `locmafVersion` signals behavioral changes that
-reinterpret existing wire syntax, which a receiver cannot detect
-from the wire bytes alone.
+within a version: fields a receiver can ignore and still
+reconstruct decode-equivalent CMAF. `locmafVersion` signals changes
+a receiver cannot ignore: new fields needed for decoding, and
+behavioral changes that reinterpret existing wire syntax. A
+receiver cannot detect either from the wire bytes alone.
 
 The CMAF Header for a `locmaf` track is carried by the **same**
 mechanism {{CMSF}} uses for a `cmaf` track: an `initDataList` entry
@@ -544,18 +551,22 @@ value encoding above:
   elements are plain unsigned `vi64` field IDs, never zigzag (see
   {{deletion-marker}}).
 
-Two fields are additionally restricted to one header kind:
-`tfdtBaseMediaDecodeTime` (ID 10) appears only in full headers — a
-delta chunk's BMDT is always derived (see {{bmdt-derivation}}) —
-and `deltaDeletedLocmafIDs` (ID 27) appears only in delta headers.
+Four fields are additionally restricted to one header kind.
+`tfdtBaseMediaDecodeTime` (ID 10) and `mfhdSequenceNumber` (ID 18)
+appear only in full headers — a delta chunk's BMDT and sequence
+number are always derived (see {{bmdt-derivation}} and
+{{seqnum-derivation}}). `mfhdSequenceNumberStep` (ID 20) and
+`deltaDeletedLocmafIDs` (ID 27) appear only in delta headers.
 
 A receiver that encounters a field ID not defined in this document
 MUST skip its value using the parity rule — one `vi64` for an even
 ID, `byte_length` bytes for an odd ID — and MUST otherwise ignore
-it. New field IDs can therefore be added backward-compatibly, as
-long as a reconstruction that ignores them remains correct; an
-extension that cannot be safely ignored requires a new `packaging`
-value instead.
+it. New field IDs can therefore be added backward-compatibly when
+a reconstruction that ignores them stays decode-equivalent: the
+same samples, timing, sample flags, and decryption parameters, even
+if its canonical bytes ({{canonical}}) differ. An extension that
+changes what the samples decode to requires a new `locmafVersion`
+(see {{catalog}}).
 
 The ID space is structurally aligned with the parity rule: every
 scalar/default field has an even ID and every list or byte field
@@ -795,14 +806,15 @@ full or delta `locmafHeader` element (element types 2 and 3, see
 the top-level element-type IDs; they MUST NOT be confused with them.
 
 Framing and value encoding follow the parity rule of {{parity}},
-including its four per-field exceptions. LOCMAF governs these IDs
-in this document; they are not LOC properties and are not
-registered with IANA (see {{iana}}).
+including the per-field exceptions and header-kind restrictions
+listed there. LOCMAF governs these IDs in this document; they are
+not LOC properties and are not registered with IANA (see {{iana}}).
 
-The fields are drawn from the boxes inside `moof.traf`. Each symbol
+The fields are drawn from the boxes inside `moof`. Each symbol
 prefix names its containing box, and the table groups them by box in
-reconstruction order — `tfhd`, then `tfdt`, then `trun`, then
-`senc`. The field IDs are therefore not consecutive: the parity rule
+reconstruction order — `mfhd`, then `tfhd`, then `tfdt`, then
+`trun`, then `senc`. The field IDs are therefore not consecutive:
+the parity rule
 ({{parity}}) fixes every scalar to an even ID and every list to an
 odd ID, and the lowest IDs are held for the common-media fields so
 they encode in a single byte. The field IDs are identical across
@@ -812,6 +824,8 @@ a full header, delta in a delta header — see {{full-chunk}} and
 
 | ID | Symbol | Kind |
 |---:|--------|------|
+| 18 | `mfhdSequenceNumber` | scalar |
+| 20 | `mfhdSequenceNumberStep` | scalar |
 | 2 | `tfhdSampleDescriptionIndex` | scalar |
 | 4 | `tfhdDefaultSampleDuration` | scalar |
 | 6 | `tfhdDefaultSampleSize` | scalar |
@@ -832,6 +846,36 @@ a full header, delta in a delta header — see {{full-chunk}} and
 
 ‡ Signed: elements are zigzag `vi64` values (see {{zigzag}}) in
 both full and delta context (see {{parity}}).
+
+## Sequence number {#seqnum-fields}
+
+`mfhdSequenceNumber` (ID 18) and `mfhdSequenceNumberStep` (ID 20)
+carry the `mfhd` `sequence_number` ({{ISOBMFF}} §8.8.5). Neither
+{{ISOBMFF}} nor {{CMAF}} fixes how the value evolves, and {{CMAF}}
+§7.5.15 explicitly allows values that repeat or that do not follow
+decode order. Packagers commonly either repeat one value, such as
+the segment number, in every chunk of a segment, or increment it by
+one per chunk.
+
+Applications can nevertheless depend on the value. In C2PA live
+video {{C2PA}} §19.4.1, the segment `sequenceNumber` can be the
+`mfhd` `sequence_number`, and the signed segment hash covers the
+`moof` bytes unless the signer excludes them. Such a hash can only
+match a reconstructed chunk that restores the source sequence
+number.
+
+`mfhdSequenceNumber` is the absolute sequence number of a full
+chunk. It appears only in full headers, and its value MUST NOT
+exceed `0xFFFFFFFF`. `mfhdSequenceNumberStep` is the difference to
+the previous chunk's sequence number, from which a delta chunk's
+sequence number is derived (see {{seqnum-derivation}}). It appears
+only in delta headers. A receiver MUST reject a delta header that
+carries ID 18, a full header that carries ID 20, and an ID 18 value
+above `0xFFFFFFFF`.
+
+A receiver that does not implement these fields reconstructs
+`sequence_number = 0`. The chunk plays, but it is not the canonical
+form, so a hash over the source `moof` cannot match.
 
 ## Sample flags carry the full 32-bit value
 
@@ -924,6 +968,9 @@ source `moof`s yield the same emitted fields.
 
 `tfdtBaseMediaDecodeTime` (10)
 : always.
+
+`mfhdSequenceNumber` (18)
+: emit iff the sequence number ≠ 0.
 
 `tfhdSampleDescriptionIndex` (2)
 : emit iff the effective sample-description index ≠ `trex.default_sample_description_index`.
@@ -1080,6 +1127,41 @@ capture gap, a stream re-anchor), the encoder MUST emit a full
 LOCMAF chunk ({{full-chunk}}): a timeline discontinuity re-anchors
 the entire in-group reference, which is also what a recovering or
 late-joining receiver needs at exactly that point.
+
+## `mfhd` sequence-number derivation {#seqnum-derivation}
+
+The receiver derives a delta chunk's sequence number from the
+previous chunk's sequence number and the current step:
+
+~~~
+sequence_number = (previous_sequence_number + step) mod 2^32
+~~~
+
+The step is the value of `mfhdSequenceNumberStep` (ID 20) in the
+in-group reference state after the current delta header has been
+applied. It is delta-coded like any scalar field: a delta header
+that carries ID 20 adds its zigzag value to the step, and one that
+omits ID 20 leaves the step unchanged. A full header cannot carry
+ID 20, so the step is 0 after a full header. For the step, absence
+and the value 0 are the same state, and listing ID 20 in
+`deltaDeletedLocmafIDs` sets it to 0. The step is signed; a
+receiver MUST reject a delta header that takes it outside the range
+from −2^31 to 2^31 − 1.
+
+An encoder computes each delta chunk's step as its sequence number
+minus the previous chunk's, reduced modulo 2^32 into that range, so
+a wrap from `0xFFFFFFFF` to 0 is a step of +1. It emits ID 20
+whenever this step differs from the previous chunk's. As a result:
+
+- A value repeated in every chunk of a group costs nothing after
+  the full header: the step stays 0.
+- A value that increments by one per chunk costs one two-byte
+  tuple, a step of +1, in the first delta header of the group;
+  later delta headers carry no sequence-number field.
+- Any other change, including a decrease or a reset, is a step
+  change in the delta header where it occurs, followed by another
+  one in the next delta header if the earlier pattern resumes. An
+  encoder MAY instead emit a full header.
 
 ## Deletions {#deletions}
 
@@ -1240,10 +1322,12 @@ both produced the canonical form.
 ## Effective values {#effective-values}
 
 Decoding a chunk — applying deltas and deletions to the in-group
-reference, then the derivations of {{sample-size-derivation}} and
-{{bmdt-derivation}} — yields the chunk's *effective values*:
+reference, then the derivations of {{sample-size-derivation}},
+{{bmdt-derivation}}, and {{seqnum-derivation}} — yields the chunk's
+*effective values*:
 
-- `n = trunSampleCount` and the BMDT;
+- `n = trunSampleCount`, the BMDT, and the sequence number (field
+  18 in a full chunk, 0 when absent; derived in a delta chunk);
 - the effective sample-description index: field 2 when present,
   else `trex.default_sample_description_index`;
 - for each sample `i` in `[0, n)`:
@@ -1282,13 +1366,10 @@ order is `tfhd`, `tfdt`, `trun`, and — when CENC metadata is present
 
 ## mfhd
 
-`version=0`, `flags=0`. LOCMAF does not carry
-`mfhd.sequence_number` and it is not reconstructable from the LOCMAF
-object alone; `mfhd.sequence_number` is not load-bearing for CMAF
-chunk decode in playback pipelines. The canonical rule is therefore
-`mfhd.sequence_number = 0`. (An implementation that needs the real
-sequence number can derive it from the MOQT object identity, but
-canonical comparison uses 0.)
+`version=0`, `flags=0`, and `sequence_number` set to the chunk's
+effective sequence number ({{effective-values}}). A track whose full
+headers carry no `mfhdSequenceNumber` therefore reconstructs with
+`sequence_number = 0` in every chunk.
 
 ## tfhd {#canonical-tfhd}
 
@@ -1495,6 +1576,9 @@ LOCMAF encoding is *canonical* when:
   never relies on inherited-list truncation alone — plus
   `deltaDeletedLocmafIDs` listing exactly the fields that leave
   that state ({{deletions}});
+- the sequence-number step changes only through ID 20 deltas and
+  is never listed in `deltaDeletedLocmafIDs`
+  ({{seqnum-derivation}});
 - a full header appears only as the first moof-carrying Object of
   each group, immediately after a rawBoxes Object ({{rawboxes}}),
   or where {{bmdt-derivation}} requires one;
@@ -1648,6 +1732,8 @@ passing it onward, and in particular:
   chunk otherwise.
 - The receiver MUST reject the malformed sample-size cases listed
   in {{canonical-sizes}}.
+- The receiver MUST reject a sequence number or step outside the
+  ranges of {{seqnum-fields}} and {{seqnum-derivation}}.
 - The receiver MUST treat an unknown leading element_type as a
   malformed object (see {{element-sequence}}): unknown top-level
   element types are not self-delimiting and MUST NOT be skipped.
