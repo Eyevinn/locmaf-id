@@ -4,8 +4,8 @@
 
 Media Over QUIC                                             T. Einarsson
 Internet-Draft                                        Eyevinn Technology
-Intended status: Informational                            4 October 2026
-Expires: 7 April 2027
+Intended status: Informational                           3 November 2026
+Expires: 7 May 2027
 
 
              Low Overhead CMAF for Media over QUIC (LOCMAF)
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 April 2027.
+   This Internet-Draft will expire on 7 May 2027.
 
 Copyright Notice
 
@@ -108,10 +108,11 @@ Table of Contents
      9.4.  Reconstruction
      9.5.  Trailing boxes
    10. Field Reference
-     10.1.  Sample flags carry the full 32-bit value
-     10.2.  Indexing and list lengths
-     10.3.  CENC fields stay inside the header
-     10.4.  Delta deletion marker
+     10.1.  Sequence number
+     10.2.  Sample flags carry the full 32-bit value
+     10.3.  Indexing and list lengths
+     10.4.  CENC fields stay inside the header
+     10.5.  Delta deletion marker
    11. Full Chunk Encoding
      11.1.  Emission rules
      11.2.  Sample-size derivation
@@ -119,8 +120,9 @@ Table of Contents
      12.1.  Field value encoding
        12.1.1.  List length changes
      12.2.  tfdt BMDT derivation
-     12.3.  Deletions
-     12.4.  Empty delta
+     12.3.  mfhd sequence-number derivation
+     12.4.  Deletions
+     12.5.  Empty delta
    13. DRM and Common Encryption
      13.1.  Protection schemes
      13.2.  Box handling
@@ -380,9 +382,11 @@ Table of Contents
    alternative packaging, it MAY select that instead.
 
    The unknown-field rule of Section 7.3 covers additive evolution
-   within a version; locmafVersion signals behavioral changes that
-   reinterpret existing wire syntax, which a receiver cannot detect from
-   the wire bytes alone.
+   within a version: fields a receiver can ignore and still reconstruct
+   decode-equivalent CMAF. locmafVersion signals changes a receiver
+   cannot ignore: new fields needed for decoding, and behavioral changes
+   that reinterpret existing wire syntax.  A receiver cannot detect
+   either from the wire bytes alone.
 
    The CMAF Header for a locmaf track is carried by the *same* mechanism
    [CMSF] uses for a cmaf track: an initDataList entry referenced from
@@ -638,19 +642,23 @@ Table of Contents
 
    *  deltaDeletedLocmafIDs (ID 27): delta-only control list whose
       elements are plain unsigned vi64 field IDs, never zigzag (see
-      Section 10.4).
+      Section 10.5).
 
-   Two fields are additionally restricted to one header kind:
-   tfdtBaseMediaDecodeTime (ID 10) appears only in full headers — a
-   delta chunk's BMDT is always derived (see Section 12.2) — and
-   deltaDeletedLocmafIDs (ID 27) appears only in delta headers.
+   Four fields are additionally restricted to one header kind.
+   tfdtBaseMediaDecodeTime (ID 10) and mfhdSequenceNumber (ID 18) appear
+   only in full headers — a delta chunk's BMDT and sequence number are
+   always derived (see Section 12.2 and Section 12.3).
+   mfhdSequenceNumberStep (ID 20) and deltaDeletedLocmafIDs (ID 27)
+   appear only in delta headers.
 
    A receiver that encounters a field ID not defined in this document
    MUST skip its value using the parity rule — one vi64 for an even ID,
    byte_length bytes for an odd ID — and MUST otherwise ignore it.  New
-   field IDs can therefore be added backward-compatibly, as long as a
-   reconstruction that ignores them remains correct; an extension that
-   cannot be safely ignored requires a new packaging value instead.
+   field IDs can therefore be added backward-compatibly when a
+   reconstruction that ignores them stays decode-equivalent: the same
+   samples, timing, sample flags, and decryption parameters, even if its
+   canonical bytes (Section 15) differ.  An extension that changes what
+   the samples decode to requires a new locmafVersion (see Section 5).
 
    The ID space is structurally aligned with the parity rule: every
    scalar/default field has an even ID and every list or byte field has
@@ -879,14 +887,14 @@ Table of Contents
    level element-type IDs; they MUST NOT be confused with them.
 
    Framing and value encoding follow the parity rule of Section 7.3,
-   including its four per-field exceptions.  LOCMAF governs these IDs in
-   this document; they are not LOC properties and are not registered
-   with IANA (see Section 19).
+   including the per-field exceptions and header-kind restrictions
+   listed there.  LOCMAF governs these IDs in this document; they are
+   not LOC properties and are not registered with IANA (see Section 19).
 
-   The fields are drawn from the boxes inside moof.traf.  Each symbol
-   prefix names its containing box, and the table groups them by box in
-   reconstruction order — tfhd, then tfdt, then trun, then senc.  The
-   field IDs are therefore not consecutive: the parity rule
+   The fields are drawn from the boxes inside moof.  Each symbol prefix
+   names its containing box, and the table groups them by box in
+   reconstruction order — mfhd, then tfhd, then tfdt, then trun, then
+   senc.  The field IDs are therefore not consecutive: the parity rule
    (Section 7.3) fixes every scalar to an even ID and every list to an
    odd ID, and the lowest IDs are held for the common-media fields so
    they encode in a single byte.  The field IDs are identical across
@@ -897,6 +905,10 @@ Table of Contents
          +====+==================================+===============+
          | ID | Symbol                           | Kind          |
          +====+==================================+===============+
+         | 18 | mfhdSequenceNumber               | scalar        |
+         +----+----------------------------------+---------------+
+         | 20 | mfhdSequenceNumberStep           | scalar        |
+         +----+----------------------------------+---------------+
          |  2 | tfhdSampleDescriptionIndex       | scalar        |
          +----+----------------------------------+---------------+
          |  4 | tfhdDefaultSampleDuration        | scalar        |
@@ -937,7 +949,35 @@ Table of Contents
    ‡ Signed: elements are zigzag vi64 values (see Section 7.4) in both
    full and delta context (see Section 7.3).
 
-10.1.  Sample flags carry the full 32-bit value
+10.1.  Sequence number
+
+   mfhdSequenceNumber (ID 18) and mfhdSequenceNumberStep (ID 20) carry
+   the mfhd sequence_number ([ISOBMFF] §8.8.5).  Neither [ISOBMFF] nor
+   [CMAF] fixes how the value evolves, and [CMAF] §7.5.15 explicitly
+   allows values that repeat or that do not follow decode order.
+   Packagers commonly either repeat one value, such as the segment
+   number, in every chunk of a segment, or increment it by one per
+   chunk.
+
+   Applications can nevertheless depend on the value.  In C2PA live
+   video [C2PA] §19.4.1, the segment sequenceNumber can be the mfhd
+   sequence_number, and the signed segment hash covers the moof bytes
+   unless the signer excludes them.  Such a hash can only match a
+   reconstructed chunk that restores the source sequence number.
+
+   mfhdSequenceNumber is the absolute sequence number of a full chunk.
+   It appears only in full headers, and its value MUST NOT exceed
+   0xFFFFFFFF. mfhdSequenceNumberStep is the difference to the previous
+   chunk's sequence number, from which a delta chunk's sequence number
+   is derived (see Section 12.3).  It appears only in delta headers.  A
+   receiver MUST reject a delta header that carries ID 18, a full header
+   that carries ID 20, and an ID 18 value above 0xFFFFFFFF.
+
+   A receiver that does not implement these fields reconstructs
+   sequence_number = 0.  The chunk plays, but it is not the canonical
+   form, so a hash over the source moof cannot match.
+
+10.2.  Sample flags carry the full 32-bit value
 
    trunSampleFlags (ID 7), tfhdDefaultSampleFlags (ID 8), and
    trunFirstSampleFlags (ID 12) each carry the complete 32-bit ISO
@@ -945,7 +985,7 @@ Table of Contents
    header, and a difference in a delta header, both as vi64 (the
    difference signed, see Section 7.4).
 
-10.2.  Indexing and list lengths
+10.3.  Indexing and list lengths
 
    The per-sample list fields (IDs 1, 3, 5, 7, 11) carry the sample[i].*
    values from their source box.  The per-subsample list fields (IDs 13,
@@ -964,7 +1004,7 @@ Table of Contents
    therefore knows the length of every list field before parsing its
    bytes.
 
-10.3.  CENC fields stay inside the header
+10.4.  CENC fields stay inside the header
 
    sencInitializationVector (9), sencSubsampleCount (11),
    sencBytesOfClearData (13), sencBytesOfProtectedData (15), and
@@ -982,7 +1022,7 @@ Table of Contents
    defined only for protected tracks, so implementations could not
    otherwise agree on what such a chunk reconstructs to.
 
-10.4.  Delta deletion marker
+10.5.  Delta deletion marker
 
    deltaDeletedLocmafIDs (ID 27) is a control field used only in a delta
    header.  It carries the list of field IDs that were present in the
@@ -1023,6 +1063,9 @@ Table of Contents
 
    tfdtBaseMediaDecodeTime (10)
       always.
+
+   mfhdSequenceNumber (18)
+      emit iff the sequence number ≠ 0.
 
    tfhdSampleDescriptionIndex (2)
       emit iff the effective sample-description index ≠
@@ -1202,12 +1245,47 @@ Table of Contents
    in-group reference, which is also what a recovering or late-joining
    receiver needs at exactly that point.
 
-12.3.  Deletions
+12.3.  mfhd sequence-number derivation
+
+   The receiver derives a delta chunk's sequence number from the
+   previous chunk's sequence number and the current step:
+
+   sequence_number = (previous_sequence_number + step) mod 2^32
+
+   The step is the value of mfhdSequenceNumberStep (ID 20) in the in-
+   group reference state after the current delta header has been
+   applied.  It is delta-coded like any scalar field: a delta header
+   that carries ID 20 adds its zigzag value to the step, and one that
+   omits ID 20 leaves the step unchanged.  A full header cannot carry ID
+   20, so the step is 0 after a full header.  For the step, absence and
+   the value 0 are the same state, and listing ID 20 in
+   deltaDeletedLocmafIDs sets it to 0.  The step is signed; a receiver
+   MUST reject a delta header that takes it outside the range from −2^31
+   to 2^31 − 1.
+
+   An encoder computes each delta chunk's step as its sequence number
+   minus the previous chunk's, reduced modulo 2^32 into that range, so a
+   wrap from 0xFFFFFFFF to 0 is a step of +1.  It emits ID 20 whenever
+   this step differs from the previous chunk's.  As a result:
+
+   *  A value repeated in every chunk of a group costs nothing after the
+      full header: the step stays 0.
+
+   *  A value that increments by one per chunk costs one two-byte tuple,
+      a step of +1, in the first delta header of the group; later delta
+      headers carry no sequence-number field.
+
+   *  Any other change, including a decrease or a reset, is a step
+      change in the delta header where it occurs, followed by another
+      one in the next delta header if the earlier pattern resumes.  An
+      encoder MAY instead emit a full header.
+
+12.4.  Deletions
 
    Because delta encoding is additive, a field that was present in the
    previous chunk but is genuinely gone from the current chunk cannot be
    signaled by mere absence — absence means "unchanged."  The deletion
-   marker deltaDeletedLocmafIDs (ID 27, see Section 10.4) provides that
+   marker deltaDeletedLocmafIDs (ID 27, see Section 10.5) provides that
    signal: it lists the field IDs present in the previous chunk that no
    longer apply.  The receiver MUST apply deletions *before* applying
    deltas, removing each listed field from the previous-chunk state so
@@ -1226,7 +1304,7 @@ Table of Contents
    tfhdDefaultSampleFlags (ID 8) instead: the sync chunk emits ID 8 and
    the next chunk deletes it, falling back to trex.default_sample_flags.
 
-12.4.  Empty delta
+12.5.  Empty delta
 
    An empty delta property block (properties_length == 0) is valid and
    means "no field changed since the previous chunk."  This is the
@@ -1380,10 +1458,11 @@ Table of Contents
 15.1.  Effective values
 
    Decoding a chunk — applying deltas and deletions to the in-group
-   reference, then the derivations of Section 11.2 and Section 12.2 —
-   yields the chunk's _effective values_:
+   reference, then the derivations of Section 11.2, Section 12.2, and
+   Section 12.3 — yields the chunk's _effective values_:
 
-   *  n = trunSampleCount and the BMDT;
+   *  n = trunSampleCount, the BMDT, and the sequence number (field 18
+      in a full chunk, 0 when absent; derived in a delta chunk);
 
    *  the effective sample-description index: field 2 when present, else
       trex.default_sample_description_index;
@@ -1432,13 +1511,10 @@ Table of Contents
 
 15.3.  mfhd
 
-   version=0, flags=0.  LOCMAF does not carry mfhd.sequence_number and
-   it is not reconstructable from the LOCMAF object alone;
-   mfhd.sequence_number is not load-bearing for CMAF chunk decode in
-   playback pipelines.  The canonical rule is therefore
-   mfhd.sequence_number = 0.  (An implementation that needs the real
-   sequence number can derive it from the MOQT object identity, but
-   canonical comparison uses 0.)
+   version=0, flags=0, and sequence_number set to the chunk's effective
+   sequence number (Section 15.1).  A track whose full headers carry no
+   mfhdSequenceNumber therefore reconstructs with sequence_number = 0 in
+   every chunk.
 
 15.4.  tfhd
 
@@ -1646,7 +1722,10 @@ Table of Contents
       prefix is element-wise identical, so canonical encoding never
       relies on inherited-list truncation alone — plus
       deltaDeletedLocmafIDs listing exactly the fields that leave that
-      state (Section 12.3);
+      state (Section 12.4);
+
+   *  the sequence-number step changes only through ID 20 deltas and is
+      never listed in deltaDeletedLocmafIDs (Section 12.3);
 
    *  a full header appears only as the first moof-carrying Object of
       each group, immediately after a rawBoxes Object (Section 9), or
@@ -1803,6 +1882,9 @@ Table of Contents
    *  The receiver MUST reject the malformed sample-size cases listed in
       Section 15.6.1.
 
+   *  The receiver MUST reject a sequence number or step outside the
+      ranges of Section 10.1 and Section 12.3.
+
    *  The receiver MUST treat an unknown leading element_type as a
       malformed object (see Section 7.1): unknown top-level element
       types are not self-delimiting and MUST NOT be skipped.
@@ -1877,6 +1959,11 @@ Table of Contents
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
 20.2.  Informative References
+
+   [C2PA]     Coalition for Content Provenance and Authenticity, "C2PA
+              Technical Specification, Version 2.4", n.d.,
+              <https://spec.c2pa.org/specifications/specifications/2.4/
+              specs/C2PA_Specification.html>.
 
    [DASH-IF-INGEST]
               "DASH-IF Live Media Ingest Protocol", n.d.,

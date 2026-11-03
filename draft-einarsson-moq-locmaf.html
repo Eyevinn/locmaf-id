@@ -25,26 +25,26 @@ Encryption) pipelines, and a canonical byte-identical
 reconstruction — independent of the encoder's representation
 choices — is defined for conformance testing. 
     " name="description">
-<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="moq" name="keyword">
 <meta content="cmaf" name="keyword">
 <meta content="live streaming" name="keyword">
 <meta content="low latency" name="keyword">
 <meta content="draft-einarsson-moq-locmaf-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.1
-    Python 3.14.8
-    ConfigArgParse 1.8.0
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.4
 -->
 <link href="draft-einarsson-moq-locmaf.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1065,11 +1065,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">LOCMAF</td>
-<td class="right">October 2026</td>
+<td class="right">November 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Einarsson</td>
-<td class="center">Expires 7 April 2027</td>
+<td class="center">Expires 7 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1082,12 +1082,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-einarsson-moq-locmaf-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-04" class="published">4 October 2026</time>
+<time datetime="2026-11-03" class="published">3 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-07">7 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-07">7 May 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1153,7 +1153,7 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 7 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1272,16 +1272,19 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
             <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-field-reference" class="internal xref">Field Reference</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
-                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-sample-flags-carry-the-full" class="internal xref">Sample flags carry the full 32-bit value</a></p>
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-sequence-number" class="internal xref">Sequence number</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
-                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-indexing-and-list-lengths" class="internal xref">Indexing and list lengths</a></p>
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-sample-flags-carry-the-full" class="internal xref">Sample flags carry the full 32-bit value</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
-                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-cenc-fields-stay-inside-the" class="internal xref">CENC fields stay inside the header</a></p>
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-indexing-and-list-lengths" class="internal xref">Indexing and list lengths</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.4">
-                <p id="section-toc.1-1.10.2.4.1"><a href="#section-10.4" class="auto internal xref">10.4</a>.  <a href="#name-delta-deletion-marker" class="internal xref">Delta deletion marker</a></p>
+                <p id="section-toc.1-1.10.2.4.1"><a href="#section-10.4" class="auto internal xref">10.4</a>.  <a href="#name-cenc-fields-stay-inside-the" class="internal xref">CENC fields stay inside the header</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
+                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-delta-deletion-marker" class="internal xref">Delta deletion marker</a></p>
 </li>
             </ul>
 </li>
@@ -1311,10 +1314,13 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
                 <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-tfdt-bmdt-derivation" class="internal xref"><code>tfdt</code> BMDT derivation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
-                <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-deletions" class="internal xref">Deletions</a></p>
+                <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-mfhd-sequence-number-deriva" class="internal xref"><code>mfhd</code> sequence-number derivation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
-                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-empty-delta" class="internal xref">Empty delta</a></p>
+                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-deletions" class="internal xref">Deletions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.5">
+                <p id="section-toc.1-1.12.2.5.1"><a href="#section-12.5" class="auto internal xref">12.5</a>.  <a href="#name-empty-delta" class="internal xref">Empty delta</a></p>
 </li>
             </ul>
 </li>
@@ -1730,9 +1736,11 @@ is <code>"0.3"</code>. A receiver <span class="bcp14">MUST NOT</span> subscribe 
 same source under an alternative packaging, it <span class="bcp14">MAY</span> select that
 instead.<a href="#section-5-6" class="pilcrow">¶</a></p>
 <p id="section-5-7">The unknown-field rule of <a href="#parity" class="auto internal xref">Section 7.3</a> covers additive evolution
-within a version; <code>locmafVersion</code> signals behavioral changes that
-reinterpret existing wire syntax, which a receiver cannot detect
-from the wire bytes alone.<a href="#section-5-7" class="pilcrow">¶</a></p>
+within a version: fields a receiver can ignore and still
+reconstruct decode-equivalent CMAF. <code>locmafVersion</code> signals changes
+a receiver cannot ignore: new fields needed for decoding, and
+behavioral changes that reinterpret existing wire syntax. A
+receiver cannot detect either from the wire bytes alone.<a href="#section-5-7" class="pilcrow">¶</a></p>
 <p id="section-5-8">The CMAF Header for a <code>locmaf</code> track is carried by the <strong>same</strong>
 mechanism <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> uses for a <code>cmaf</code> track: an <code>initDataList</code> entry
 referenced from the track entry by <code>initRef</code> (see <a href="#cmaf-header" class="auto internal xref">Section 6</a>).
@@ -2042,20 +2050,24 @@ verbatim in both contexts (overwrite, never a delta).<a href="#section-7.3-4.2.1
           <li class="normal" id="section-7.3-4.3">
             <p id="section-7.3-4.3.1"><code>deltaDeletedLocmafIDs</code> (ID 27): delta-only control list whose
 elements are plain unsigned <code>vi64</code> field IDs, never zigzag (see
-<a href="#deletion-marker" class="auto internal xref">Section 10.4</a>).<a href="#section-7.3-4.3.1" class="pilcrow">¶</a></p>
+<a href="#deletion-marker" class="auto internal xref">Section 10.5</a>).<a href="#section-7.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.3-5">Two fields are additionally restricted to one header kind:
-<code>tfdtBaseMediaDecodeTime</code> (ID 10) appears only in full headers — a
-delta chunk's BMDT is always derived (see <a href="#bmdt-derivation" class="auto internal xref">Section 12.2</a>) —
-and <code>deltaDeletedLocmafIDs</code> (ID 27) appears only in delta headers.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
+<p id="section-7.3-5">Four fields are additionally restricted to one header kind.
+<code>tfdtBaseMediaDecodeTime</code> (ID 10) and <code>mfhdSequenceNumber</code> (ID 18)
+appear only in full headers — a delta chunk's BMDT and sequence
+number are always derived (see <a href="#bmdt-derivation" class="auto internal xref">Section 12.2</a> and
+<a href="#seqnum-derivation" class="auto internal xref">Section 12.3</a>). <code>mfhdSequenceNumberStep</code> (ID 20) and
+<code>deltaDeletedLocmafIDs</code> (ID 27) appear only in delta headers.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
 <p id="section-7.3-6">A receiver that encounters a field ID not defined in this document
 <span class="bcp14">MUST</span> skip its value using the parity rule — one <code>vi64</code> for an even
 ID, <code>byte_length</code> bytes for an odd ID — and <span class="bcp14">MUST</span> otherwise ignore
-it. New field IDs can therefore be added backward-compatibly, as
-long as a reconstruction that ignores them remains correct; an
-extension that cannot be safely ignored requires a new <code>packaging</code>
-value instead.<a href="#section-7.3-6" class="pilcrow">¶</a></p>
+it. New field IDs can therefore be added backward-compatibly when
+a reconstruction that ignores them stays decode-equivalent: the
+same samples, timing, sample flags, and decryption parameters, even
+if its canonical bytes (<a href="#canonical" class="auto internal xref">Section 15</a>) differ. An extension that
+changes what the samples decode to requires a new <code>locmafVersion</code>
+(see <a href="#catalog" class="auto internal xref">Section 5</a>).<a href="#section-7.3-6" class="pilcrow">¶</a></p>
 <p id="section-7.3-7">The ID space is structurally aligned with the parity rule: every
 scalar/default field has an even ID and every list or byte field
 has an odd ID. A field ID <span class="bcp14">MUST NOT</span> appear twice in one property
@@ -2356,13 +2368,14 @@ full or delta <code>locmafHeader</code> element (element types 2 and 3, see
 <a href="#element-sequence" class="auto internal xref">Section 7.1</a>). These IDs occupy a namespace distinct from
 the top-level element-type IDs; they <span class="bcp14">MUST NOT</span> be confused with them.<a href="#section-10-1" class="pilcrow">¶</a></p>
 <p id="section-10-2">Framing and value encoding follow the parity rule of <a href="#parity" class="auto internal xref">Section 7.3</a>,
-including its four per-field exceptions. LOCMAF governs these IDs
-in this document; they are not LOC properties and are not
-registered with IANA (see <a href="#iana" class="auto internal xref">Section 19</a>).<a href="#section-10-2" class="pilcrow">¶</a></p>
-<p id="section-10-3">The fields are drawn from the boxes inside <code>moof.traf</code>. Each symbol
+including the per-field exceptions and header-kind restrictions
+listed there. LOCMAF governs these IDs in this document; they are
+not LOC properties and are not registered with IANA (see <a href="#iana" class="auto internal xref">Section 19</a>).<a href="#section-10-2" class="pilcrow">¶</a></p>
+<p id="section-10-3">The fields are drawn from the boxes inside <code>moof</code>. Each symbol
 prefix names its containing box, and the table groups them by box in
-reconstruction order — <code>tfhd</code>, then <code>tfdt</code>, then <code>trun</code>, then
-<code>senc</code>. The field IDs are therefore not consecutive: the parity rule
+reconstruction order — <code>mfhd</code>, then <code>tfhd</code>, then <code>tfdt</code>, then
+<code>trun</code>, then <code>senc</code>. The field IDs are therefore not consecutive:
+the parity rule
 (<a href="#parity" class="auto internal xref">Section 7.3</a>) fixes every scalar to an even ID and every list to an
 odd ID, and the lowest IDs are held for the common-media fields so
 they encode in a single byte. The field IDs are identical across
@@ -2379,6 +2392,20 @@ a full header, delta in a delta header — see <a href="#full-chunk" class="auto
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">18</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>mfhdSequenceNumber</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">scalar</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">20</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>mfhdSequenceNumberStep</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">scalar</td>
+          </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">2</td>
             <td class="text-left" rowspan="1" colspan="1">
@@ -2502,69 +2529,100 @@ a full header, delta in a delta header — see <a href="#full-chunk" class="auto
       </table>
 <p id="section-10-5">‡ Signed: elements are zigzag <code>vi64</code> values (see <a href="#zigzag" class="auto internal xref">Section 7.4</a>) in
 both full and delta context (see <a href="#parity" class="auto internal xref">Section 7.3</a>).<a href="#section-10-5" class="pilcrow">¶</a></p>
-<div id="sample-flags-carry-the-full-32-bit-value">
+<div id="seqnum-fields">
 <section id="section-10.1">
-        <h3 id="name-sample-flags-carry-the-full">
-<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-sample-flags-carry-the-full" class="section-name selfRef">Sample flags carry the full 32-bit value</a>
+        <h3 id="name-sequence-number">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-sequence-number" class="section-name selfRef">Sequence number</a>
         </h3>
-<p id="section-10.1-1"><code>trunSampleFlags</code> (ID 7), <code>tfhdDefaultSampleFlags</code> (ID 8), and
+<p id="section-10.1-1"><code>mfhdSequenceNumber</code> (ID 18) and <code>mfhdSequenceNumberStep</code> (ID 20)
+carry the <code>mfhd</code> <code>sequence_number</code> (<span>[<a href="#ISOBMFF" class="cite xref">ISOBMFF</a>]</span> §8.8.5). Neither
+<span>[<a href="#ISOBMFF" class="cite xref">ISOBMFF</a>]</span> nor <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> fixes how the value evolves, and <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span>
+§7.5.15 explicitly allows values that repeat or that do not follow
+decode order. Packagers commonly either repeat one value, such as
+the segment number, in every chunk of a segment, or increment it by
+one per chunk.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.1-2">Applications can nevertheless depend on the value. In C2PA live
+video <span>[<a href="#C2PA" class="cite xref">C2PA</a>]</span> §19.4.1, the segment <code>sequenceNumber</code> can be the
+<code>mfhd</code> <code>sequence_number</code>, and the signed segment hash covers the
+<code>moof</code> bytes unless the signer excludes them. Such a hash can only
+match a reconstructed chunk that restores the source sequence
+number.<a href="#section-10.1-2" class="pilcrow">¶</a></p>
+<p id="section-10.1-3"><code>mfhdSequenceNumber</code> is the absolute sequence number of a full
+chunk. It appears only in full headers, and its value <span class="bcp14">MUST NOT</span>
+exceed <code>0xFFFFFFFF</code>. <code>mfhdSequenceNumberStep</code> is the difference to
+the previous chunk's sequence number, from which a delta chunk's
+sequence number is derived (see <a href="#seqnum-derivation" class="auto internal xref">Section 12.3</a>). It appears
+only in delta headers. A receiver <span class="bcp14">MUST</span> reject a delta header that
+carries ID 18, a full header that carries ID 20, and an ID 18 value
+above <code>0xFFFFFFFF</code>.<a href="#section-10.1-3" class="pilcrow">¶</a></p>
+<p id="section-10.1-4">A receiver that does not implement these fields reconstructs
+<code>sequence_number = 0</code>. The chunk plays, but it is not the canonical
+form, so a hash over the source <code>moof</code> cannot match.<a href="#section-10.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sample-flags-carry-the-full-32-bit-value">
+<section id="section-10.2">
+        <h3 id="name-sample-flags-carry-the-full">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-sample-flags-carry-the-full" class="section-name selfRef">Sample flags carry the full 32-bit value</a>
+        </h3>
+<p id="section-10.2-1"><code>trunSampleFlags</code> (ID 7), <code>tfhdDefaultSampleFlags</code> (ID 8), and
 <code>trunFirstSampleFlags</code> (ID 12) each carry the complete 32-bit ISO
 <code>sample_flags</code> value (<span>[<a href="#ISOBMFF" class="cite xref">ISOBMFF</a>]</span> §8.8.3.1): the full value in a
 full header, and a difference in a delta header, both as <code>vi64</code>
-(the difference signed, see <a href="#zigzag" class="auto internal xref">Section 7.4</a>).<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+(the difference signed, see <a href="#zigzag" class="auto internal xref">Section 7.4</a>).<a href="#section-10.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="indexing-and-list-lengths">
-<section id="section-10.2">
+<section id="section-10.3">
         <h3 id="name-indexing-and-list-lengths">
-<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-indexing-and-list-lengths" class="section-name selfRef">Indexing and list lengths</a>
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-indexing-and-list-lengths" class="section-name selfRef">Indexing and list lengths</a>
         </h3>
-<p id="section-10.2-1">The per-sample list fields (IDs 1, 3, 5, 7, 11) carry the
+<p id="section-10.3-1">The per-sample list fields (IDs 1, 3, 5, 7, 11) carry the
 <code>sample[i].*</code> values from their source box. The per-subsample list
 fields (IDs 13, 15) carry the
 <code>senc.sample[i].subsample[j].*</code> values flattened in chunk order,
 with a total length equal to the sum of <code>sencSubsampleCount[i]</code>
 over all samples. <code>sencInitializationVector</code> (ID 9) is the
 concatenation of per-sample IVs, each <code>per_sample_IV_size</code> bytes
-long (see <a href="#drm" class="auto internal xref">Section 13</a>).<a href="#section-10.2-1" class="pilcrow">¶</a></p>
-<p id="section-10.2-2"><code>trunSampleCount</code> (ID 14) — always present in a full header, and
+long (see <a href="#drm" class="auto internal xref">Section 13</a>).<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+<p id="section-10.3-2"><code>trunSampleCount</code> (ID 14) — always present in a full header, and
 carried in a delta header only when it changes — anchors every list
 length: the per-sample lists have <code>trunSampleCount</code> elements, with
 the single exception of <code>trunSampleSizes</code> (ID 1), which carries
 <code>trunSampleCount − 1</code> entries because the last sample size is
 derived from the <code>mdat</code>-payload length (see
 <a href="#sample-size-derivation" class="auto internal xref">Section 11.2</a>). The receiver therefore knows the
-length of every list field before parsing its bytes.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
+length of every list field before parsing its bytes.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="cenc-fields-stay-inside-the-header">
-<section id="section-10.3">
+<section id="section-10.4">
         <h3 id="name-cenc-fields-stay-inside-the">
-<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-cenc-fields-stay-inside-the" class="section-name selfRef">CENC fields stay inside the header</a>
+<a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-cenc-fields-stay-inside-the" class="section-name selfRef">CENC fields stay inside the header</a>
         </h3>
-<p id="section-10.3-1"><code>sencInitializationVector</code> (9), <code>sencSubsampleCount</code> (11),
+<p id="section-10.4-1"><code>sencInitializationVector</code> (9), <code>sencSubsampleCount</code> (11),
 <code>sencBytesOfClearData</code> (13), <code>sencBytesOfProtectedData</code> (15), and
 <code>sencPerSampleIVSize</code> (16) are drawn from the <code>senc</code> box inside
 <code>moof.traf</code>. They are therefore <code>locmafHeader</code> fields, <strong>not</strong>
 genBox. Only boxes outside <code>moof</code> are carried as generic boxes (see
 <a href="#genbox" class="auto internal xref">Section 8</a>). The <code>saio</code> and <code>saiz</code> boxes are not carried at all;
 the receiver recomputes them during canonical reconstruction (see
-<a href="#drm" class="auto internal xref">Section 13</a> and <a href="#canonical" class="auto internal xref">Section 15</a>).<a href="#section-10.3-1" class="pilcrow">¶</a></p>
-<p id="section-10.3-2">The CENC fields apply only to protected tracks. A receiver <span class="bcp14">MUST</span>
+<a href="#drm" class="auto internal xref">Section 13</a> and <a href="#canonical" class="auto internal xref">Section 15</a>).<a href="#section-10.4-1" class="pilcrow">¶</a></p>
+<p id="section-10.4-2">The CENC fields apply only to protected tracks. A receiver <span class="bcp14">MUST</span>
 reject a chunk that carries any of them (IDs 9, 11, 13, 15, 16) on
 a track whose CMAF Header does not signal protection
 (<code>tenc.default_isProtected = 1</code>): the reconstruction of
 <a href="#canonical-cenc" class="auto internal xref">Section 15.8</a> is defined only for protected tracks, so
 implementations could not otherwise agree on what such a chunk
-reconstructs to.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+reconstructs to.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="deletion-marker">
-<section id="section-10.4">
+<section id="section-10.5">
         <h3 id="name-delta-deletion-marker">
-<a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-delta-deletion-marker" class="section-name selfRef">Delta deletion marker</a>
+<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-delta-deletion-marker" class="section-name selfRef">Delta deletion marker</a>
         </h3>
-<p id="section-10.4-1"><code>deltaDeletedLocmafIDs</code> (ID 27) is a control field used only in a
+<p id="section-10.5-1"><code>deltaDeletedLocmafIDs</code> (ID 27) is a control field used only in a
 delta header. It carries the list of field IDs that were present in
 the previous chunk of the same group but are absent in the current
 one. Its elements are <strong>plain unsigned <code>vi64</code> values</strong> — not
@@ -2574,7 +2632,7 @@ determined by the field's byte-length prefix: the receiver reads
 unsigned <code>vi64</code> values until the prefix is exhausted. This field
 <span class="bcp14">MUST NOT</span>
 appear in a full header. Its application is specified in
-<a href="#delta-chunk" class="auto internal xref">Section 12</a>.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
+<a href="#delta-chunk" class="auto internal xref">Section 12</a>.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2620,75 +2678,81 @@ source <code>moof</code>s yield the same emitted fields.<a href="#section-11.1-1
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.5">
-<code>tfhdSampleDescriptionIndex</code> (2)</dt>
+<code>mfhdSequenceNumber</code> (18)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.6">
-            <p id="section-11.1-2.6.1">emit iff the effective sample-description index ≠ <code>trex.default_sample_description_index</code>.<a href="#section-11.1-2.6.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.6.1">emit iff the sequence number ≠ 0.<a href="#section-11.1-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.7">
-<code>trunSampleDurations</code> (3)</dt>
+<code>tfhdSampleDescriptionIndex</code> (2)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.8">
-            <p id="section-11.1-2.8.1">emit iff the effective sample durations are not all equal.<a href="#section-11.1-2.8.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.8.1">emit iff the effective sample-description index ≠ <code>trex.default_sample_description_index</code>.<a href="#section-11.1-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.9">
-<code>tfhdDefaultSampleDuration</code> (4)</dt>
+<code>trunSampleDurations</code> (3)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.10">
-            <p id="section-11.1-2.10.1">emit iff the effective sample durations are all equal AND that value ≠ <code>trex.default_sample_duration</code>.<a href="#section-11.1-2.10.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.10.1">emit iff the effective sample durations are not all equal.<a href="#section-11.1-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.11">
-<code>trunSampleSizes</code> (1)</dt>
+<code>tfhdDefaultSampleDuration</code> (4)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.12">
-            <p id="section-11.1-2.12.1">emit iff sample sizes are not all equal AND <code>sample_count &gt; 1</code>; the list carries <code>sample_count − 1</code> values (the first <code>n − 1</code> in chunk order).<a href="#section-11.1-2.12.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.12.1">emit iff the effective sample durations are all equal AND that value ≠ <code>trex.default_sample_duration</code>.<a href="#section-11.1-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.13">
-<code>tfhdDefaultSampleSize</code> (6)</dt>
+<code>trunSampleSizes</code> (1)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.14">
-            <p id="section-11.1-2.14.1">emit iff all samples in the chunk share one size AND that size ≠ <code>trex.default_sample_size</code> AND <code>sample_count &gt; 1</code> (see <a href="#sample-size-derivation" class="auto internal xref">Section 11.2</a>).<a href="#section-11.1-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.14.1">emit iff sample sizes are not all equal AND <code>sample_count &gt; 1</code>; the list carries <code>sample_count − 1</code> values (the first <code>n − 1</code> in chunk order).<a href="#section-11.1-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.15">
-<code>trunSampleFlags</code> (7)</dt>
+<code>tfhdDefaultSampleSize</code> (6)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.16">
-            <p id="section-11.1-2.16.1">emit iff the effective sample flags are neither all equal, nor equal on all samples but the first.<a href="#section-11.1-2.16.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.16.1">emit iff all samples in the chunk share one size AND that size ≠ <code>trex.default_sample_size</code> AND <code>sample_count &gt; 1</code> (see <a href="#sample-size-derivation" class="auto internal xref">Section 11.2</a>).<a href="#section-11.1-2.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.17">
-<code>trunFirstSampleFlags</code> (12)</dt>
+<code>trunSampleFlags</code> (7)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.18">
-            <p id="section-11.1-2.18.1">emit iff <code>sample_count &gt; 1</code> AND the first sample's effective flags differ from the (equal) effective flags of all other samples.<a href="#section-11.1-2.18.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.18.1">emit iff the effective sample flags are neither all equal, nor equal on all samples but the first.<a href="#section-11.1-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.19">
-<code>tfhdDefaultSampleFlags</code> (8)</dt>
+<code>trunFirstSampleFlags</code> (12)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.20">
-            <p id="section-11.1-2.20.1">emit iff the effective flags shared by the samples it covers (all samples, or all but the first when <code>trunFirstSampleFlags</code> is emitted) ≠ <code>trex.default_sample_flags</code>; never emitted together with <code>trunSampleFlags</code>.<a href="#section-11.1-2.20.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.20.1">emit iff <code>sample_count &gt; 1</code> AND the first sample's effective flags differ from the (equal) effective flags of all other samples.<a href="#section-11.1-2.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.21">
-<code>trunSampleCompositionTimeOffsets</code> (5)</dt>
+<code>tfhdDefaultSampleFlags</code> (8)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.22">
-            <p id="section-11.1-2.22.1">emit iff any effective composition-time offset ≠ 0.<a href="#section-11.1-2.22.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.22.1">emit iff the effective flags shared by the samples it covers (all samples, or all but the first when <code>trunFirstSampleFlags</code> is emitted) ≠ <code>trex.default_sample_flags</code>; never emitted together with <code>trunSampleFlags</code>.<a href="#section-11.1-2.22.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.23">
-<code>sencPerSampleIVSize</code> (16)</dt>
+<code>trunSampleCompositionTimeOffsets</code> (5)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.24">
-            <p id="section-11.1-2.24.1">emit iff <code>senc</code> is present AND <code>per_sample_IV_size ≠ tenc.default_Per_Sample_IV_Size</code>.<a href="#section-11.1-2.24.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.24.1">emit iff any effective composition-time offset ≠ 0.<a href="#section-11.1-2.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.25">
-<code>sencInitializationVector</code> (9)</dt>
+<code>sencPerSampleIVSize</code> (16)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.26">
-            <p id="section-11.1-2.26.1">emit iff <code>senc</code> is present AND <code>per_sample_IV_size &gt; 0</code>.<a href="#section-11.1-2.26.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.26.1">emit iff <code>senc</code> is present AND <code>per_sample_IV_size ≠ tenc.default_Per_Sample_IV_Size</code>.<a href="#section-11.1-2.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-11.1-2.27">
-<code>sencSubsampleCount</code> (11), <code>sencBytesOfClearData</code> (13), <code>sencBytesOfProtectedData</code> (15)</dt>
+<code>sencInitializationVector</code> (9)</dt>
           <dd style="margin-left: 1.5em" id="section-11.1-2.28">
-            <p id="section-11.1-2.28.1">emit iff <code>senc</code> is present AND the samples carry subsample maps.<a href="#section-11.1-2.28.1" class="pilcrow">¶</a></p>
+            <p id="section-11.1-2.28.1">emit iff <code>senc</code> is present AND <code>per_sample_IV_size &gt; 0</code>.<a href="#section-11.1-2.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-2.29">
+<code>sencSubsampleCount</code> (11), <code>sencBytesOfClearData</code> (13), <code>sencBytesOfProtectedData</code> (15)</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-2.30">
+            <p id="section-11.1-2.30.1">emit iff <code>senc</code> is present AND the samples carry subsample maps.<a href="#section-11.1-2.30.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2874,21 +2938,66 @@ the entire in-group reference, which is also what a recovering or
 late-joining receiver needs at exactly that point.<a href="#section-12.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="deletions">
+<div id="seqnum-derivation">
 <section id="section-12.3">
-        <h3 id="name-deletions">
-<a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-deletions" class="section-name selfRef">Deletions</a>
+        <h3 id="name-mfhd-sequence-number-deriva">
+<a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-mfhd-sequence-number-deriva" class="section-name selfRef"><code>mfhd</code> sequence-number derivation</a>
         </h3>
-<p id="section-12.3-1">Because delta encoding is additive, a field that was present in the
+<p id="section-12.3-1">The receiver derives a delta chunk's sequence number from the
+previous chunk's sequence number and the current step:<a href="#section-12.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-12.3-2">
+<pre>
+sequence_number = (previous_sequence_number + step) mod 2^32
+</pre><a href="#section-12.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-12.3-3">The step is the value of <code>mfhdSequenceNumberStep</code> (ID 20) in the
+in-group reference state after the current delta header has been
+applied. It is delta-coded like any scalar field: a delta header
+that carries ID 20 adds its zigzag value to the step, and one that
+omits ID 20 leaves the step unchanged. A full header cannot carry
+ID 20, so the step is 0 after a full header. For the step, absence
+and the value 0 are the same state, and listing ID 20 in
+<code>deltaDeletedLocmafIDs</code> sets it to 0. The step is signed; a
+receiver <span class="bcp14">MUST</span> reject a delta header that takes it outside the range
+from −2^31 to 2^31 − 1.<a href="#section-12.3-3" class="pilcrow">¶</a></p>
+<p id="section-12.3-4">An encoder computes each delta chunk's step as its sequence number
+minus the previous chunk's, reduced modulo 2^32 into that range, so
+a wrap from <code>0xFFFFFFFF</code> to 0 is a step of +1. It emits ID 20
+whenever this step differs from the previous chunk's. As a result:<a href="#section-12.3-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-12.3-5.1">
+            <p id="section-12.3-5.1.1">A value repeated in every chunk of a group costs nothing after
+the full header: the step stays 0.<a href="#section-12.3-5.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-12.3-5.2">
+            <p id="section-12.3-5.2.1">A value that increments by one per chunk costs one two-byte
+tuple, a step of +1, in the first delta header of the group;
+later delta headers carry no sequence-number field.<a href="#section-12.3-5.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-12.3-5.3">
+            <p id="section-12.3-5.3.1">Any other change, including a decrease or a reset, is a step
+change in the delta header where it occurs, followed by another
+one in the next delta header if the earlier pattern resumes. An
+encoder <span class="bcp14">MAY</span> instead emit a full header.<a href="#section-12.3-5.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="deletions">
+<section id="section-12.4">
+        <h3 id="name-deletions">
+<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-deletions" class="section-name selfRef">Deletions</a>
+        </h3>
+<p id="section-12.4-1">Because delta encoding is additive, a field that was present in the
 previous chunk but is genuinely gone from the current chunk cannot
 be signaled by mere absence — absence means "unchanged." The
 deletion marker <code>deltaDeletedLocmafIDs</code> (ID 27, see
-<a href="#deletion-marker" class="auto internal xref">Section 10.4</a>) provides that signal: it lists the field IDs
+<a href="#deletion-marker" class="auto internal xref">Section 10.5</a>) provides that signal: it lists the field IDs
 present in the previous chunk that no longer apply. The receiver
 <span class="bcp14">MUST</span> apply deletions <strong>before</strong> applying deltas, removing each
 listed field from the previous-chunk state so the current chunk
-falls back to the appropriate default (<code>trex</code>-derived or absent).<a href="#section-12.3-1" class="pilcrow">¶</a></p>
-<p id="section-12.3-2">The motivating case is <code>trunFirstSampleFlags</code> (ID 12). A SAP-1
+falls back to the appropriate default (<code>trex</code>-derived or absent).<a href="#section-12.4-1" class="pilcrow">¶</a></p>
+<p id="section-12.4-2">The motivating case is <code>trunFirstSampleFlags</code> (ID 12). A SAP-1
 random-access chunk emits this field to flag its first sample as a
 sync sample; the immediately following non-sync chunk must say
 "this override no longer applies" so the receiver falls back to
@@ -2899,18 +3008,18 @@ ID — versus the tens to hundreds of bytes of re-anchoring with a
 full header. In a one-sample-per-chunk stream the same pattern
 rides <code>tfhdDefaultSampleFlags</code> (ID 8) instead: the sync chunk
 emits ID 8 and the next chunk deletes it, falling back to
-<code>trex.default_sample_flags</code>.<a href="#section-12.3-2" class="pilcrow">¶</a></p>
+<code>trex.default_sample_flags</code>.<a href="#section-12.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="empty-delta">
-<section id="section-12.4">
+<section id="section-12.5">
         <h3 id="name-empty-delta">
-<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-empty-delta" class="section-name selfRef">Empty delta</a>
+<a href="#section-12.5" class="section-number selfRef">12.5. </a><a href="#name-empty-delta" class="section-name selfRef">Empty delta</a>
         </h3>
-<p id="section-12.4-1">An empty delta property block (<code>properties_length == 0</code>) is valid
+<p id="section-12.5-1">An empty delta property block (<code>properties_length == 0</code>) is valid
 and means "no field changed since the previous chunk." This is the
 steady-state case for sample-level fragmented streams. The on-wire
-object reduces to the delta header element plus the <code>mdat</code> payload.<a href="#section-12.4-1" class="pilcrow">¶</a></p>
+object reduces to the delta header element plus the <code>mdat</code> payload.<a href="#section-12.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3120,11 +3229,13 @@ both produced the canonical form.<a href="#section-15-4" class="pilcrow">¶</a><
 <a href="#section-15.1" class="section-number selfRef">15.1. </a><a href="#name-effective-values" class="section-name selfRef">Effective values</a>
         </h3>
 <p id="section-15.1-1">Decoding a chunk — applying deltas and deletions to the in-group
-reference, then the derivations of <a href="#sample-size-derivation" class="auto internal xref">Section 11.2</a> and
-<a href="#bmdt-derivation" class="auto internal xref">Section 12.2</a> — yields the chunk's <em>effective values</em>:<a href="#section-15.1-1" class="pilcrow">¶</a></p>
+reference, then the derivations of <a href="#sample-size-derivation" class="auto internal xref">Section 11.2</a>,
+<a href="#bmdt-derivation" class="auto internal xref">Section 12.2</a>, and <a href="#seqnum-derivation" class="auto internal xref">Section 12.3</a> — yields the chunk's
+<em>effective values</em>:<a href="#section-15.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15.1-2.1">
-            <p id="section-15.1-2.1.1"><code>n = trunSampleCount</code> and the BMDT;<a href="#section-15.1-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-15.1-2.1.1"><code>n = trunSampleCount</code>, the BMDT, and the sequence number (field
+18 in a full chunk, 0 when absent; derived in a delta chunk);<a href="#section-15.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-15.1-2.2">
             <p id="section-15.1-2.2.1">the effective sample-description index: field 2 when present,
@@ -3196,13 +3307,10 @@ order is <code>tfhd</code>, <code>tfdt</code>, <code>trun</code>, and — when C
         <h3 id="name-mfhd">
 <a href="#section-15.3" class="section-number selfRef">15.3. </a><a href="#name-mfhd" class="section-name selfRef">mfhd</a>
         </h3>
-<p id="section-15.3-1"><code>version=0</code>, <code>flags=0</code>. LOCMAF does not carry
-<code>mfhd.sequence_number</code> and it is not reconstructable from the LOCMAF
-object alone; <code>mfhd.sequence_number</code> is not load-bearing for CMAF
-chunk decode in playback pipelines. The canonical rule is therefore
-<code>mfhd.sequence_number = 0</code>. (An implementation that needs the real
-sequence number can derive it from the MOQT object identity, but
-canonical comparison uses 0.)<a href="#section-15.3-1" class="pilcrow">¶</a></p>
+<p id="section-15.3-1"><code>version=0</code>, <code>flags=0</code>, and <code>sequence_number</code> set to the chunk's
+effective sequence number (<a href="#effective-values" class="auto internal xref">Section 15.1</a>). A track whose full
+headers carry no <code>mfhdSequenceNumber</code> therefore reconstructs with
+<code>sequence_number = 0</code> in every chunk.<a href="#section-15.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="canonical-tfhd">
@@ -3475,18 +3583,23 @@ counts as changed when its length changes, even when the
 surviving prefix is element-wise identical, so canonical encoding
 never relies on inherited-list truncation alone — plus
 <code>deltaDeletedLocmafIDs</code> listing exactly the fields that leave
-that state (<a href="#deletions" class="auto internal xref">Section 12.3</a>);<a href="#section-15.9-2.2.1" class="pilcrow">¶</a></p>
+that state (<a href="#deletions" class="auto internal xref">Section 12.4</a>);<a href="#section-15.9-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-15.9-2.3">
-            <p id="section-15.9-2.3.1">a full header appears only as the first moof-carrying Object of
-each group, immediately after a rawBoxes Object (<a href="#rawboxes" class="auto internal xref">Section 9</a>),
-or where <a href="#bmdt-derivation" class="auto internal xref">Section 12.2</a> requires one;<a href="#section-15.9-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-15.9-2.3.1">the sequence-number step changes only through ID 20 deltas and
+is never listed in <code>deltaDeletedLocmafIDs</code>
+(<a href="#seqnum-derivation" class="auto internal xref">Section 12.3</a>);<a href="#section-15.9-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-15.9-2.4">
-            <p id="section-15.9-2.4.1">field IDs appear in ascending order; and<a href="#section-15.9-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-15.9-2.4.1">a full header appears only as the first moof-carrying Object of
+each group, immediately after a rawBoxes Object (<a href="#rawboxes" class="auto internal xref">Section 9</a>),
+or where <a href="#bmdt-derivation" class="auto internal xref">Section 12.2</a> requires one;<a href="#section-15.9-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-15.9-2.5">
-            <p id="section-15.9-2.5.1">every <code>vi64</code> uses its shortest form.<a href="#section-15.9-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-15.9-2.5.1">field IDs appear in ascending order; and<a href="#section-15.9-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.9-2.6">
+            <p id="section-15.9-2.6.1">every <code>vi64</code> uses its shortest form.<a href="#section-15.9-2.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-15.9-3">Two canonical encoders given the same CMAF input therefore produce
@@ -3669,9 +3782,13 @@ chunk otherwise.<a href="#section-18-3.4.1" class="pilcrow">¶</a></p>
 in <a href="#canonical-sizes" class="auto internal xref">Section 15.6.1</a>.<a href="#section-18-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-18-3.6">
-          <p id="section-18-3.6.1">The receiver <span class="bcp14">MUST</span> treat an unknown leading element_type as a
+          <p id="section-18-3.6.1">The receiver <span class="bcp14">MUST</span> reject a sequence number or step outside the
+ranges of <a href="#seqnum-fields" class="auto internal xref">Section 10.1</a> and <a href="#seqnum-derivation" class="auto internal xref">Section 12.3</a>.<a href="#section-18-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-18-3.7">
+          <p id="section-18-3.7.1">The receiver <span class="bcp14">MUST</span> treat an unknown leading element_type as a
 malformed object (see <a href="#element-sequence" class="auto internal xref">Section 7.1</a>): unknown top-level
-element types are not self-delimiting and <span class="bcp14">MUST NOT</span> be skipped.<a href="#section-18-3.6.1" class="pilcrow">¶</a></p>
+element types are not self-delimiting and <span class="bcp14">MUST NOT</span> be skipped.<a href="#section-18-3.7.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-18-4">Each genBox payload is wrapped into an ISO BMFF box of declared
@@ -3754,6 +3871,10 @@ against the structural rules for its type.<a href="#section-18-5" class="pilcrow
 <a href="#section-20.2" class="section-number selfRef">20.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="C2PA">[C2PA]</dt>
+        <dd>
+<span class="refAuthor">Coalition for Content Provenance and Authenticity</span>, <span class="refTitle">"C2PA Technical Specification, Version 2.4"</span>, <span>n.d.</span>, <span>&lt;<a href="https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html">https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="DASH-IF-INGEST">[DASH-IF-INGEST]</dt>
         <dd>
 <span class="refTitle">"DASH-IF Live Media Ingest Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://dashif.org/Ingest/">https://dashif.org/Ingest/</a>&gt;</span>. </dd>
