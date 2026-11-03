@@ -196,14 +196,17 @@ Table of Contents
    coding of headers against a shared reference, and a compact form that
    the receiver expands into standard ISO BMFF boxes.
 
-   RObust Header Compression (ROHC) [RFC3095] [RFC5795] compresses IP,
-   UDP, and RTP headers on a link.  Compressor and decompressor keep a
-   shared context that is set up by packets carrying full headers; later
-   headers are sent encoded relative to that context.  Because a link
-   can lose packets, ROHC protects the context with CRCs and feedback-
-   driven repair.  LOCMAF ties its reference to a MOQT group instead:
-   the group starts with a full chunk, its Objects arrive in order on
-   one subgroup stream, and after a gap the receiver resumes at the next
+   RObust Header Compression (ROHC) [RFC3095] [RFC5795] compresses
+   headers such as IP, UDP, and RTP on a link.  Compressor and
+   decompressor each keep a context, which packets carrying complete
+   headers initialize; later headers are sent encoded relative to it.
+   Because packets on the link can be lost or damaged, ROHC verifies
+   decompressed headers with CRCs and repairs the context through
+   feedback from the decompressor or, on one-way links, through periodic
+   refreshes.  LOCMAF ties its reference to a MOQT group instead.  The
+   group starts with a full chunk, its Objects arrive in order on one
+   subgroup stream, and a later full chunk re-anchors the reference much
+   like a ROHC refresh.  After a gap, the receiver resumes at the next
    full chunk or group (see Section 3).
 
    The Low-overhead Image File Format, added to the HEIF image file

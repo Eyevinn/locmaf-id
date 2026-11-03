@@ -1464,14 +1464,17 @@ golden files, and worked examples are published at <span>[<a href="#LOCMAF-REPO"
 coding of headers against a shared reference, and a compact form
 that the receiver expands into standard ISO BMFF boxes.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 <p id="section-1.1-2">RObust Header Compression (ROHC) <span>[<a href="#RFC3095" class="cite xref">RFC3095</a>]</span> <span>[<a href="#RFC5795" class="cite xref">RFC5795</a>]</span> compresses
-IP, UDP, and RTP headers on a link. Compressor and decompressor keep
-a shared context that is set up by packets carrying full headers;
-later headers are sent encoded relative to that context. Because a
-link can lose packets, ROHC protects the context with CRCs and
-feedback-driven repair. LOCMAF ties its reference to a MOQT group
-instead: the group starts with a full chunk, its Objects arrive in
-order on one subgroup stream, and after a gap the receiver resumes
-at the next full chunk or group (see <a href="#mapping" class="auto internal xref">Section 3</a>).<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+headers such as IP, UDP, and RTP on a link. Compressor and
+decompressor each keep a context, which packets carrying complete
+headers initialize; later headers are sent encoded relative to it.
+Because packets on the link can be lost or damaged, ROHC verifies
+decompressed headers with CRCs and repairs the context through
+feedback from the decompressor or, on one-way links, through
+periodic refreshes. LOCMAF ties its reference to a MOQT group
+instead. The group starts with a full chunk, its Objects arrive in
+order on one subgroup stream, and a later full chunk re-anchors the
+reference much like a ROHC refresh. After a gap, the receiver
+resumes at the next full chunk or group (see <a href="#mapping" class="auto internal xref">Section 3</a>).<a href="#section-1.1-2" class="pilcrow">¶</a></p>
 <p id="section-1.1-3">The Low-overhead Image File Format, added to the HEIF image file
 format by Amendment 2 of ISO/IEC 23008-12 <span>[<a href="#HEIF-AMD2" class="cite xref">HEIF-AMD2</a>]</span>, uses a
 compact form for still images. A single MinimizedImageBox (<code>mini</code>)
