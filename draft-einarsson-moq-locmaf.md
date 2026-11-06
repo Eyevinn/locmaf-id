@@ -32,7 +32,7 @@ author:
 normative:
   MOQT: I-D.draft-ietf-moq-transport-23
   CMSF: I-D.draft-ietf-moq-cmsf-01
-  MSF:  I-D.draft-ietf-moq-msf-01
+  MSF:  I-D.draft-ietf-moq-msf-02
   LOC:  I-D.draft-ietf-moq-loc-05
   CMAF:
     title: "Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media"
@@ -294,31 +294,32 @@ Every track entry in a CMSF catalog that carries LOCMAF-encoded
 media MUST declare a `packaging` value of `"locmaf"`. As with
 `"cmaf"`, the `"locmaf"` packaging is defined for CMSF catalogs
 only, not for plain MSF {{MSF}} catalogs. The `"locmaf"` packaging
-value and the `locmafVersion` field below are expected to migrate
-into {{CMSF}} once it registers them; until then they are defined
-here.
+value is expected to migrate into {{CMSF}} once it registers it;
+until then it is defined here.
 
 The LOCMAF Object encoding is versioned independently of the CMSF
-catalog `version`. This document adds one track-level catalog
-field, following the field-definition conventions of {{MSF}}:
+catalog `version`. A `locmaf` track signals its LOCMAF packaging
+version in the `packagingMetadata` track field of {{MSF}}, a list of
+`key=value` pairs whose keys are defined by the specification of
+the track's packaging value. This document defines one key for the
+`"locmaf"` packaging value, `version`, which holds the track's LOCMAF
+packaging version.
 
-| Field          | Name            | Location | Required    | JSON Type |
-|----------------|-----------------|----------|-------------|-----------|
-| LOCMAF version | `locmafVersion` | T        | Conditional | String    |
-
-`locmafVersion` identifies the LOCMAF packaging version of the
-track. It MUST be present when `packaging` is `"locmaf"` and MUST
-NOT be present otherwise. The version specified by this document
-is `"0.3"`. A receiver MUST NOT subscribe to a LOCMAF track whose
-`locmafVersion` it does not support; when the catalog offers the
-same source under an alternative packaging, it MAY select that
-instead.
+A `locmaf` track MUST carry `packagingMetadata` with a `version`
+key. The version specified by this document is `0.3`, so the track
+entry carries `"packagingMetadata": "version=0.3"`. A receiver MUST
+NOT subscribe to a LOCMAF track whose `version` it does not support,
+or whose `packagingMetadata` has no `version` key; when the catalog
+offers the same source under an alternative packaging, it MAY select
+that instead. As {{MSF}} requires, a receiver ignores any key not
+defined for the `"locmaf"` packaging value, so a later version of
+this document can add keys.
 
 The unknown-field rule of {{parity}} covers additive evolution
 within a version: fields a receiver can ignore and still
-reconstruct decode-equivalent CMAF. `locmafVersion` signals changes
-a receiver cannot ignore: new fields needed for decoding, and
-behavioral changes that reinterpret existing wire syntax. A
+reconstruct decode-equivalent CMAF. The `version` key signals
+changes a receiver cannot ignore: new fields needed for decoding,
+and behavioral changes that reinterpret existing wire syntax. A
 receiver cannot detect either from the wire bytes alone.
 
 The CMAF Header for a `locmaf` track is carried by the **same**
@@ -339,8 +340,8 @@ content-protection model {{DASHIF-ECCP}}. LOCMAF does **not** use the
 MSF moq-secure-objects mechanism; the encryption metadata travels
 inside the reconstructed CMAF boxes (see {{drm}}). The precise
 catalog field names are those defined by {{MSF}} and {{CMSF}};
-beyond the `packaging` value `"locmaf"` and the `locmafVersion`
-field, LOCMAF introduces no catalog fields.
+beyond the `packaging` value `"locmaf"` and its `version` key in
+`packagingMetadata`, LOCMAF introduces no catalog fields.
 
 `cmaf` and `locmaf` tracks MAY be mixed in the same catalog under the
 same namespace — for example video using `cmaf` packaging while audio
@@ -565,8 +566,8 @@ it. New field IDs can therefore be added backward-compatibly when
 a reconstruction that ignores them stays decode-equivalent: the
 same samples, timing, sample flags, and decryption parameters, even
 if its canonical bytes ({{canonical}}) differ. An extension that
-changes what the samples decode to requires a new `locmafVersion`
-(see {{catalog}}).
+changes what the samples decode to requires a new LOCMAF packaging
+version (see {{catalog}}).
 
 The ID space is structurally aligned with the parity rule: every
 scalar/default field has an even ID and every list or byte field
@@ -1690,7 +1691,7 @@ The framing also maps directly onto low-latency HTTP delivery:
 
 The catalog signaling of {{catalog}} has no MPD or playlist
 counterpart defined here: at minimum the packaging, the
-`locmafVersion`, the initialization-data reference, and any
+LOCMAF packaging version, the initialization-data reference, and any
 content-protection signaling need manifest-level equivalents, and
 the segments need a dedicated media type (such as `video/locmaf`,
 `audio/locmaf`, or `application/locmaf`) so that clients do not
