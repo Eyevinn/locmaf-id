@@ -31,7 +31,7 @@ author:
 
 normative:
   MOQT: I-D.draft-ietf-moq-transport-23
-  CMSF: I-D.draft-ietf-moq-cmsf-01
+  CMSF: I-D.draft-ietf-moq-cmsf-02
   MSF:  I-D.draft-ietf-moq-msf-02
   LOC:  I-D.draft-ietf-moq-loc-05
   CMAF:
@@ -320,20 +320,15 @@ the canonical reconstruction defined in {{canonical}} emits a
 
 # Catalog Signaling {#catalog}
 
-LOCMAF media is signaled in a CMSF {{CMSF}} catalog. This document
-extends the allowed `packaging` values defined in {{MSF}} with one
-new entry, in the same manner that {{CMSF}} adds `"cmaf"`:
-
-| Name   | Value    | Reference     |
-|--------|----------|---------------|
-| LOCMAF | `locmaf` | This document |
+LOCMAF media is signaled in a CMSF {{CMSF}} catalog. {{CMSF}}
+registers the `"locmaf"` value among the allowed `packaging` values
+defined in {{MSF}}, next to its own `"cmaf"` value, and references
+this document for the Object encoding.
 
 Every track entry in a CMSF catalog that carries LOCMAF-encoded
 media MUST declare a `packaging` value of `"locmaf"`. As with
 `"cmaf"`, the `"locmaf"` packaging is defined for CMSF catalogs
-only, not for plain MSF {{MSF}} catalogs. The `"locmaf"` packaging
-value is expected to migrate into {{CMSF}} once it registers it;
-until then it is defined here.
+only, not for plain MSF {{MSF}} catalogs.
 
 The LOCMAF Object encoding is versioned independently of the CMSF
 catalog `version`. A `locmaf` track signals its LOCMAF packaging
