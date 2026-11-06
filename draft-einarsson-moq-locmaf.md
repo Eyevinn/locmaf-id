@@ -32,7 +32,7 @@ author:
 normative:
   MOQT: I-D.draft-ietf-moq-transport-23
   CMSF: I-D.draft-ietf-moq-cmsf-01
-  MSF:  I-D.draft-ietf-moq-msf-01
+  MSF:  I-D.draft-ietf-moq-msf-02
   LOC:  I-D.draft-ietf-moq-loc-05
   CMAF:
     title: "Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media"
