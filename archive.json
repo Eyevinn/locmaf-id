@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-05T00:17:47.438097+00:00",
+  "timestamp": "2026-11-08T00:19:41.096377+00:00",
   "repo": "Eyevinn/locmaf-id",
   "labels": [
     {
@@ -145,15 +145,15 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "Replaces the separate `locmafVersion` catalog field with a `version` key in the MSF `packagingMetadata` track field.\n\n## Why\n\nThe MSF editor's copy adds a `packagingMetadata` track field (moq-wg/msf#211, merged 2026-11-02). It holds `key=value` pairs separated by `;`, and the specification for the track's packaging value defines the keys. That is the job `locmafVersion` did, so a `locmaf` track entry now carries:\n\n```json\n\"packaging\": \"locmaf\",\n\"packagingMetadata\": \"version=0.3\"\n```\n\nLOCMAF then adds no catalog field of its own, and CMSF only has to register the `locmaf` packaging value.\n\n## What carries over\n\n- The `version` key is required on a `locmaf` track.\n- A receiver must not subscribe to a track whose `version` it does not support, or whose `packagingMetadata` has no `version` key. It may pick an alternative packaging of the same source instead.\n- MSF requires receivers to ignore keys that are not defined for the packaging value, so later LOCMAF versions can add keys.\n\nThe other mentions of `locmafVersion` (the extensibility rule, the catalog summary, and the note on DASH/HLS carriage) now say \"LOCMAF packaging version\".\n\n## Before merging\n\n`packagingMetadata` is not in the published MSF -01, only in the editor's copy. This should merge once MSF -02 is published, together with bumping the MSF reference to -02.\n\n## Follow-ups\n\n- moq-wg/cmsf#27 drops its `locmafVersion` field definition.\n- Implementations switch from `locmafVersion` to `packagingMetadata`: the moqlivemock catalog gate, warp-player, the msf-catalog-validator CUE schema, and the version strings on locmaf.dev.\n\nThe draft renders, stays within 72 columns, and passes `make lint`.\n",
+      "body": "Replaces the separate `locmafVersion` catalog field with a `version` key in the MSF `packagingMetadata` track field.\n\n## Why\n\nThe MSF editor's copy adds a `packagingMetadata` track field (moq-wg/msf#211, merged 2026-11-02). It holds `key=value` pairs separated by `;`, and the specification for the track's packaging value defines the keys. That is the job `locmafVersion` did, so a `locmaf` track entry now carries:\n\n```json\n\"packaging\": \"locmaf\",\n\"packagingMetadata\": \"version=0.3\"\n```\n\nLOCMAF then adds no catalog field of its own, and CMSF only has to register the `locmaf` packaging value.\n\n## What carries over\n\n- The `version` key is required on a `locmaf` track.\n- A receiver must not subscribe to a track whose `version` it does not support, or whose `packagingMetadata` has no `version` key. It may pick an alternative packaging of the same source instead.\n- MSF requires receivers to ignore keys that are not defined for the packaging value, so later LOCMAF versions can add keys.\n\nThe other mentions of `locmafVersion` (the extensibility rule, the catalog summary, and the note on DASH/HLS carriage) now say \"LOCMAF packaging version\".\n\n## Before merging\n\n`packagingMetadata` is not in the published MSF -01, only in the editor's copy. The MSF reference is now -02, so this should merge once MSF -02 is published. Until then the rendered draft shows a placeholder entry for that reference.\n\n## Follow-ups\n\n- moq-wg/cmsf#27 now uses `packagingMetadata` instead of its `locmafVersion` field.\n- A follow-up PR cites CMSF -02, which registers the `locmaf` packaging value, and drops the registration from this draft.\n- Implementations switch from `locmafVersion` to `packagingMetadata`: the moqlivemock catalog gate, warp-player, the msf-catalog-validator CUE schema, and the version strings on locmaf.dev.\n\nThe draft renders, stays within 72 columns, and passes `make lint`.\n\n",
       "createdAt": "2026-11-03T12:55:48Z",
-      "updatedAt": "2026-11-03T12:55:48Z",
+      "updatedAt": "2026-11-06T14:03:30Z",
       "baseRepository": "Eyevinn/locmaf-id",
       "baseRefName": "main",
-      "baseRefOid": "7dd384f25ea37f6c2b01ce77147dc66e75f0515d",
+      "baseRefOid": "69e0361c86313e856cf485d9f2d5e89e655894d8",
       "headRepository": "Eyevinn/locmaf-id",
       "headRefName": "catalog-packaging-metadata",
-      "headRefOid": "3631273289cb2326f74b41d312bf1b08266f0f65",
+      "headRefOid": "a2d4238b64aeddd6b233b09fc45331f1dad0d19b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
