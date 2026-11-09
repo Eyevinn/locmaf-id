@@ -1184,12 +1184,17 @@ choices — is defined for conformance testing.<a href="#section-abstract-1" cla
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-related-work" class="internal xref">Related Work</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
             <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-moqt-group-object-mapping" class="internal xref">MOQT Group / Object Mapping</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-moqt-group-object-mapping" class="internal xref">MOQT Group / Object Mapping</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-scope-and-publisher-require" class="internal xref">Scope and Publisher Requirements</a></p>
@@ -1450,6 +1455,39 @@ such as <code>uuid</code> ride alongside the <code>moof</code> (<a href="#genbox
 outside the field model can be carried as whole boxes verbatim
 (<a href="#rawboxes" class="auto internal xref">Section 9</a>). A reference implementation, conformance test vectors,
 golden files, and worked examples are published at <span>[<a href="#LOCMAF-REPO" class="cite xref">LOCMAF-REPO</a>]</span>.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<div id="related-work">
+<section id="section-1.1">
+        <h3 id="name-related-work">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-related-work" class="section-name selfRef">Related Work</a>
+        </h3>
+<p id="section-1.1-1">LOCMAF combines two techniques that each have a precedent: delta
+coding of headers against a shared reference, and a compact form
+that the receiver expands into standard ISO BMFF boxes.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">RObust Header Compression (ROHC) <span>[<a href="#RFC3095" class="cite xref">RFC3095</a>]</span> <span>[<a href="#RFC5795" class="cite xref">RFC5795</a>]</span> compresses
+headers such as IP, UDP, and RTP on a link. Compressor and
+decompressor each keep a context, which packets carrying complete
+headers initialize; later headers are sent encoded relative to it.
+Because packets on the link can be lost or damaged, ROHC verifies
+decompressed headers with CRCs and repairs the context through
+feedback from the decompressor or, on one-way links, through
+periodic refreshes. LOCMAF ties its reference to a MOQT group
+instead. The group starts with a full chunk, its Objects arrive in
+order on one subgroup stream, and a later full chunk re-anchors the
+reference much like a ROHC refresh. After a gap, the receiver
+resumes at the next full chunk or group (see <a href="#mapping" class="auto internal xref">Section 3</a>).<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+<p id="section-1.1-3">The Low-overhead Image File Format, added to the HEIF image file
+format by Amendment 2 of ISO/IEC 23008-12 <span>[<a href="#HEIF-AMD2" class="cite xref">HEIF-AMD2</a>]</span>, uses a
+compact form for still images. A single MinimizedImageBox (<code>mini</code>)
+replaces the <code>meta</code> and <code>mdat</code> boxes of a HEIF file. It fixes the
+item structure, packs the remaining values at bit level, and leaves
+out values that have defaults, which can shrink the container
+overhead of a small image from a few hundred bytes to a few tens of
+bytes. A reader treats the <code>mini</code> box as if the equivalent <code>meta</code>
+and <code>mdat</code> boxes were present, much as a LOCMAF receiver expands an
+Object into a CMAF chunk (see <a href="#canonical" class="auto internal xref">Section 15</a>). The format describes
+one standalone image, so it has no delta coding.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -3865,9 +3903,21 @@ against the structural rules for its type.<a href="#section-18-5" class="pilcrow
         <dd>
 <span class="refTitle">"DASH-IF Implementation Guidelines: Encryption and Content Protection (ECCP)"</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://dashif.org/docs/DASH-IF-ECCP-v1.0.0.pdf">https://dashif.org/docs/DASH-IF-ECCP-v1.0.0.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="HEIF-AMD2">[HEIF-AMD2]</dt>
+        <dd>
+<span class="refTitle">"Information technology — High efficiency coding and media delivery in heterogeneous environments — Part 12: Image File Format — Amendment 2: Low-overhead image file format"</span>, <span class="seriesInfo">ISO/IEC 23008-12:2025/Amd 2:2026</span>, <time datetime="2026" class="refDate">2026</time>. </dd>
+<dd class="break"></dd>
 <dt id="LOCMAF-REPO">[LOCMAF-REPO]</dt>
-      <dd>
+        <dd>
 <span class="refTitle">"LOCMAF — reference implementation, conformance test vectors, golden files, and worked examples"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/Eyevinn/locmaf">https://github.com/Eyevinn/locmaf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3095">[RFC3095]</dt>
+        <dd>
+<span class="refAuthor">Bormann, C.</span>, <span class="refAuthor">Burmeister, C.</span>, <span class="refAuthor">Degermark, M.</span>, <span class="refAuthor">Fukushima, H.</span>, <span class="refAuthor">Hannu, H.</span>, <span class="refAuthor">Jonsson, L.</span>, <span class="refAuthor">Hakenberg, R.</span>, <span class="refAuthor">Koren, T.</span>, <span class="refAuthor">Le, K.</span>, <span class="refAuthor">Liu, Z.</span>, <span class="refAuthor">Martensson, A.</span>, <span class="refAuthor">Miyazaki, A.</span>, <span class="refAuthor">Svanbro, K.</span>, <span class="refAuthor">Wiebke, T.</span>, <span class="refAuthor">Yoshimura, T.</span>, and <span class="refAuthor">H. Zheng</span>, <span class="refTitle">"RObust Header Compression (ROHC): Framework and four profiles: RTP, UDP, ESP, and uncompressed"</span>, <span class="seriesInfo">RFC 3095</span>, <span class="seriesInfo">DOI 10.17487/RFC3095</span>, <time datetime="2001-07" class="refDate">July 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3095">https://www.rfc-editor.org/rfc/rfc3095</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5795">[RFC5795]</dt>
+      <dd>
+<span class="refAuthor">Sandlund, K.</span>, <span class="refAuthor">Pelletier, G.</span>, and <span class="refAuthor">L. Jonsson</span>, <span class="refTitle">"The RObust Header Compression (ROHC) Framework"</span>, <span class="seriesInfo">RFC 5795</span>, <span class="seriesInfo">DOI 10.17487/RFC5795</span>, <time datetime="2010-03" class="refDate">March 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5795">https://www.rfc-editor.org/rfc/rfc5795</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
