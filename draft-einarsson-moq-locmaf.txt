@@ -4,8 +4,8 @@
 
 Media Over QUIC                                             T. Einarsson
 Internet-Draft                                        Eyevinn Technology
-Intended status: Informational                           3 November 2026
-Expires: 7 May 2027
+Intended status: Informational                           9 November 2026
+Expires: 13 May 2027
 
 
              Low Overhead CMAF for Media over QUIC (LOCMAF)
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2027.
+   This Internet-Draft will expire on 13 May 2027.
 
 Copyright Notice
 
@@ -357,33 +357,31 @@ Table of Contents
    Every track entry in a CMSF catalog that carries LOCMAF-encoded media
    MUST declare a packaging value of "locmaf".  As with "cmaf", the
    "locmaf" packaging is defined for CMSF catalogs only, not for plain
-   MSF [MSF] catalogs.  The "locmaf" packaging value and the
-   locmafVersion field below are expected to migrate into [CMSF] once it
-   registers them; until then they are defined here.
+   MSF [MSF] catalogs.  The "locmaf" packaging value is expected to
+   migrate into [CMSF] once it registers it; until then it is defined
+   here.
 
    The LOCMAF Object encoding is versioned independently of the CMSF
-   catalog version.  This document adds one track-level catalog field,
-   following the field-definition conventions of [MSF]:
+   catalog version.  A locmaf track signals its LOCMAF packaging version
+   in the packagingMetadata track field of [MSF], a list of key=value
+   pairs whose keys are defined by the specification of the track's
+   packaging value.  This document defines one key for the "locmaf"
+   packaging value, version, which holds the track's LOCMAF packaging
+   version.
 
-     +=========+===============+==========+=============+===========+
-     | Field   | Name          | Location | Required    | JSON Type |
-     +=========+===============+==========+=============+===========+
-     | LOCMAF  | locmafVersion | T        | Conditional | String    |
-     | version |               |          |             |           |
-     +---------+---------------+----------+-------------+-----------+
-
-                                 Table 2
-
-   locmafVersion identifies the LOCMAF packaging version of the track.
-   It MUST be present when packaging is "locmaf" and MUST NOT be present
-   otherwise.  The version specified by this document is "0.3".  A
-   receiver MUST NOT subscribe to a LOCMAF track whose locmafVersion it
-   does not support; when the catalog offers the same source under an
-   alternative packaging, it MAY select that instead.
+   A locmaf track MUST carry packagingMetadata with a version key.  The
+   version specified by this document is 0.3, so the track entry carries
+   "packagingMetadata": "version=0.3".  A receiver MUST NOT subscribe to
+   a LOCMAF track whose version it does not support, or whose
+   packagingMetadata has no version key; when the catalog offers the
+   same source under an alternative packaging, it MAY select that
+   instead.  As [MSF] requires, a receiver ignores any key not defined
+   for the "locmaf" packaging value, so a later version of this document
+   can add keys.
 
    The unknown-field rule of Section 7.3 covers additive evolution
    within a version: fields a receiver can ignore and still reconstruct
-   decode-equivalent CMAF. locmafVersion signals changes a receiver
+   decode-equivalent CMAF.  The version key signals changes a receiver
    cannot ignore: new fields needed for decoding, and behavioral changes
    that reinterpret existing wire syntax.  A receiver cannot detect
    either from the wire bytes alone.
@@ -406,8 +404,8 @@ Table of Contents
    objects mechanism; the encryption metadata travels inside the
    reconstructed CMAF boxes (see Section 13).  The precise catalog field
    names are those defined by [MSF] and [CMSF]; beyond the packaging
-   value "locmaf" and the locmafVersion field, LOCMAF introduces no
-   catalog fields.
+   value "locmaf" and its version key in packagingMetadata, LOCMAF
+   introduces no catalog fields.
 
    cmaf and locmaf tracks MAY be mixed in the same catalog under the
    same namespace — for example video using cmaf packaging while audio
@@ -519,7 +517,7 @@ Table of Contents
    |              |                   | 9)        |                   |
    +--------------+-------------------+-----------+-------------------+
 
-                                 Table 3
+                                 Table 2
 
    The mdat payload carries no element_type tag — it is whatever bytes
    remain after the locmafHeader.
@@ -658,7 +656,8 @@ Table of Contents
    reconstruction that ignores them stays decode-equivalent: the same
    samples, timing, sample flags, and decryption parameters, even if its
    canonical bytes (Section 15) differ.  An extension that changes what
-   the samples decode to requires a new locmafVersion (see Section 5).
+   the samples decode to requires a new LOCMAF packaging version (see
+   Section 5).
 
    The ID space is structurally aligned with the parity rule: every
    scalar/default field has an even ID and every list or byte field has
@@ -944,7 +943,7 @@ Table of Contents
          | 27 | deltaDeletedLocmafIDs            | list          |
          +----+----------------------------------+---------------+
 
-                                  Table 4
+                                  Table 3
 
    ‡ Signed: elements are zigzag vi64 values (see Section 7.4) in both
    full and delta context (see Section 7.3).
@@ -1188,7 +1187,7 @@ Table of Contents
      | (odd ID)  |                               | previous bytes   |
      +-----------+-------------------------------+------------------+
 
-                                 Table 5
+                                 Table 4
 
    The "previous value" for each field is its value in the in-group
    reference state: the represented fields stored from the previous
@@ -1368,7 +1367,7 @@ Table of Contents
    |      | moov    |                                                  |
    +------+---------+--------------------------------------------------+
 
-                                  Table 6
+                                  Table 5
 
    The following DRM boxes are not supported.  Sources that require them
    MUST use plain CMAF packaging:
@@ -1388,7 +1387,7 @@ Table of Contents
     |                | profiles (e.g. im1i) is out of scope.          |
     +----------------+------------------------------------------------+
 
-                                  Table 7
+                                  Table 6
 
 14.  Event-Only Tracks
 
@@ -1836,13 +1835,13 @@ Table of Contents
       the same file as stored at rest.
 
    The catalog signaling of Section 5 has no MPD or playlist counterpart
-   defined here: at minimum the packaging, the locmafVersion, the
-   initialization-data reference, and any content-protection signaling
-   need manifest-level equivalents, and the segments need a dedicated
-   media type (such as video/locmaf, audio/locmaf, or application/
-   locmaf) so that clients do not mistake them for CMAF.  Registration
-   of such media types would accompany a future specification of this
-   carriage.
+   defined here: at minimum the packaging, the LOCMAF packaging version,
+   the initialization-data reference, and any content-protection
+   signaling need manifest-level equivalents, and the segments need a
+   dedicated media type (such as video/locmaf, audio/locmaf, or
+   application/locmaf) so that clients do not mistake them for CMAF.
+   Registration of such media types would accompany a future
+   specification of this carriage.
 
 18.  Security Considerations
 
@@ -1944,10 +1943,7 @@ Table of Contents
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               transport-23>.
 
-   [MSF]      Law, W. and S. Nandakumar, "MOQT Streaming Format", Work
-              in Progress, Internet-Draft, draft-ietf-moq-msf-01, 2 June
-              2026, <https://datatracker.ietf.org/doc/html/draft-ietf-
-              moq-msf-01>.
+   [MSF]      "*** BROKEN REFERENCE ***".
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
