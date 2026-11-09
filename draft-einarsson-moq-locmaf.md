@@ -651,8 +651,8 @@ deltas against the in-group reference, and for the signed list
 
 # Generic Boxes (genBox) {#genbox}
 
-A `genBox` is the single generic carrier for every box that sits
-outside the `moof` in a CMAF chunk — `styp`, `prft`, `emsg`,
+A `genBox` is the single generic carrier for every box that
+precedes the `moof` in a CMAF chunk — `styp`, `prft`, `emsg`,
 `uuid`, and any other ISO box type. One `genBox` element carries
 exactly one ISO box.
 
@@ -732,6 +732,17 @@ before the `moof`; the `mdat` immediately follows the `moof`. The
 reconstructed chunk is `genBox*` (in payload order), then `moof`,
 then `mdat`.
 
+A chunk with boxes between its `moof` and its `mdat` does not fit
+this shape. Such boxes are outside the CMAF chunk structure, but
+ISO BMFF allows them, since `data_offset` can skip them. A
+publisher MUST carry such a chunk as a rawBoxes Object
+({{rawboxes}}) holding the whole chunk, including any boxes before
+its `moof`. It MUST NOT move the boxes before the `moof` as
+`genBox`es: that would change the chunk's bytes and its
+`data_offset`, and give one chunk two encodings for canonical
+comparison ({{canonical}}). As after any rawBoxes Object, the next
+moof-carrying Object of the group is a full header.
+
 A box after the last `mdat` of a CMAF segment precedes no `moof`
 in the group, so no `genBox` can carry it, and LOCMAF does not
 carry it. CMAF describes such boxes only before a chunk, and a box
@@ -746,7 +757,7 @@ The `payload` of every `genBox` is simply the box contents as
 defined by {{ISOBMFF}} (or the specification owning the box type),
 carried verbatim — LOCMAF re-encodes no fields.
 
-The set of box types carried as `genBox`es is open: any box outside
+The set of box types carried as `genBox`es is open: any box before
 the `moof` is carried under its ISO `box_name` FourCC, which is
 self-describing and needs no LOCMAF identifier allocation.
 
@@ -764,7 +775,8 @@ that LOCMAF does not otherwise carry. Two uses motivate it:
   `moov` bytes, so a stored LOCMAF segment is self-contained and
   the initialization bytes round-trip exactly.
 - **Verbatim chunk carriage.** A chunk whose `moof` uses structures
-  outside the LOCMAF field model rides verbatim, at plain-CMAF
+  outside the LOCMAF field model, or that has boxes between its
+  `moof` and its `mdat` ({{genbox}}), rides verbatim, at plain-CMAF
   cost, without forcing the whole track onto plain CMAF packaging.
 
 ## Byte layout
