@@ -373,24 +373,15 @@ Table of Contents
 
 5.  Catalog Signaling
 
-   LOCMAF media is signaled in a CMSF [CMSF] catalog.  This document
-   extends the allowed packaging values defined in [MSF] with one new
-   entry, in the same manner that [CMSF] adds "cmaf":
-
-                    +========+========+===============+
-                    | Name   | Value  | Reference     |
-                    +========+========+===============+
-                    | LOCMAF | locmaf | This document |
-                    +--------+--------+---------------+
-
-                                  Table 1
+   LOCMAF media is signaled in a CMSF [CMSF] catalog.  [CMSF] registers
+   the "locmaf" value among the allowed packaging values defined in
+   [MSF], next to its own "cmaf" value, and references this document for
+   the Object encoding.
 
    Every track entry in a CMSF catalog that carries LOCMAF-encoded media
    MUST declare a packaging value of "locmaf".  As with "cmaf", the
    "locmaf" packaging is defined for CMSF catalogs only, not for plain
-   MSF [MSF] catalogs.  The "locmaf" packaging value is expected to
-   migrate into [CMSF] once it registers it; until then it is defined
-   here.
+   MSF [MSF] catalogs.
 
    The LOCMAF Object encoding is versioned independently of the CMSF
    catalog version.  A locmaf track signals its LOCMAF packaging version
@@ -550,7 +541,7 @@ Table of Contents
    |              |                   | 9)        |                   |
    +--------------+-------------------+-----------+-------------------+
 
-                                 Table 2
+                                 Table 1
 
    The mdat payload carries no element_type tag — it is whatever bytes
    remain after the locmafHeader.
@@ -971,7 +962,7 @@ Table of Contents
          | 27 | deltaDeletedLocmafIDs            | list          |
          +----+----------------------------------+---------------+
 
-                                  Table 3
+                                  Table 2
 
    ‡ Signed: elements are zigzag vi64 values (see Section 7.4) in both
    full and delta context (see Section 7.3).
@@ -1215,7 +1206,7 @@ Table of Contents
      | (odd ID)  |                               | previous bytes   |
      +-----------+-------------------------------+------------------+
 
-                                 Table 4
+                                 Table 3
 
    The "previous value" for each field is its value in the in-group
    reference state: the represented fields stored from the previous
@@ -1395,7 +1386,7 @@ Table of Contents
    |      | moov    |                                                  |
    +------+---------+--------------------------------------------------+
 
-                                  Table 5
+                                  Table 4
 
    The following DRM boxes are not supported.  Sources that require them
    MUST use plain CMAF packaging:
@@ -1415,7 +1406,7 @@ Table of Contents
     |                | profiles (e.g. im1i) is out of scope.          |
     +----------------+------------------------------------------------+
 
-                                  Table 6
+                                  Table 5
 
 14.  Event-Only Tracks
 
@@ -1981,11 +1972,7 @@ Table of Contents
               (MPEG-A) — Part 19: Common media application format (CMAF)
               for segmented media", ISO/IEC 23000-19:2024, 2024.
 
-   [CMSF]     Law, W., "CMSF- a CMAF compliant implementation of MOQT
-              Streaming Format", Work in Progress, Internet-Draft,
-              draft-ietf-moq-cmsf-01, 3 June 2026,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              cmsf-01>.
+   [CMSF]     "*** BROKEN REFERENCE ***".
 
    [ISOBMFF]  "Information technology — Coding of audio-visual objects —
               Part 12: ISO base media file format", ISO/

@@ -1709,58 +1709,38 @@ the canonical reconstruction defined in <a href="#canonical" class="auto interna
       <h2 id="name-catalog-signaling">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-catalog-signaling" class="section-name selfRef">Catalog Signaling</a>
       </h2>
-<p id="section-5-1">LOCMAF media is signaled in a CMSF <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> catalog. This document
-extends the allowed <code>packaging</code> values defined in <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> with one
-new entry, in the same manner that <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> adds <code>"cmaf"</code>:<a href="#section-5-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-1">
-        <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Name</th>
-            <th class="text-left" rowspan="1" colspan="1">Value</th>
-            <th class="text-left" rowspan="1" colspan="1">Reference</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">LOCMAF</td>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>locmaf</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">This document</td>
-          </tr>
-        </tbody>
-      </table>
-<p id="section-5-3">Every track entry in a CMSF catalog that carries LOCMAF-encoded
+<p id="section-5-1">LOCMAF media is signaled in a CMSF <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> catalog. <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>
+registers the <code>"locmaf"</code> value among the allowed <code>packaging</code> values
+defined in <span>[<a href="#MSF" class="cite xref">MSF</a>]</span>, next to its own <code>"cmaf"</code> value, and references
+this document for the Object encoding.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">Every track entry in a CMSF catalog that carries LOCMAF-encoded
 media <span class="bcp14">MUST</span> declare a <code>packaging</code> value of <code>"locmaf"</code>. As with
 <code>"cmaf"</code>, the <code>"locmaf"</code> packaging is defined for CMSF catalogs
-only, not for plain MSF <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> catalogs. The <code>"locmaf"</code> packaging
-value is expected to migrate into <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> once it registers it;
-until then it is defined here.<a href="#section-5-3" class="pilcrow">¶</a></p>
-<p id="section-5-4">The LOCMAF Object encoding is versioned independently of the CMSF
+only, not for plain MSF <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> catalogs.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">The LOCMAF Object encoding is versioned independently of the CMSF
 catalog <code>version</code>. A <code>locmaf</code> track signals its LOCMAF packaging
 version in the <code>packagingMetadata</code> track field of <span>[<a href="#MSF" class="cite xref">MSF</a>]</span>, a list of
 <code>key=value</code> pairs whose keys are defined by the specification of
 the track's packaging value. This document defines one key for the
 <code>"locmaf"</code> packaging value, <code>version</code>, which holds the track's LOCMAF
-packaging version.<a href="#section-5-4" class="pilcrow">¶</a></p>
-<p id="section-5-5">A <code>locmaf</code> track <span class="bcp14">MUST</span> carry <code>packagingMetadata</code> with a <code>version</code>
+packaging version.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">A <code>locmaf</code> track <span class="bcp14">MUST</span> carry <code>packagingMetadata</code> with a <code>version</code>
 key. The version specified by this document is <code>0.4</code>, so the track
 entry carries <code>"packagingMetadata": "version=0.4"</code>. A receiver <span class="bcp14">MUST NOT</span> subscribe to a LOCMAF track whose <code>version</code> it does not support,
 or whose <code>packagingMetadata</code> has no <code>version</code> key; when the catalog
 offers the same source under an alternative packaging, it <span class="bcp14">MAY</span> select
 that instead. As <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> requires, a receiver ignores any key not
 defined for the <code>"locmaf"</code> packaging value, so a later version of
-this document can add keys.<a href="#section-5-5" class="pilcrow">¶</a></p>
-<p id="section-5-6">The unknown-field rule of <a href="#parity" class="auto internal xref">Section 7.3</a> covers additive evolution
+this document can add keys.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-5-5">The unknown-field rule of <a href="#parity" class="auto internal xref">Section 7.3</a> covers additive evolution
 within a version: fields a receiver can ignore and still
 reconstruct decode-equivalent CMAF. The <code>version</code> key signals
 changes a receiver cannot ignore: new fields needed for decoding,
 behavioral changes that reinterpret existing wire syntax, and
 changes to the canonical reconstruction (<a href="#canonical" class="auto internal xref">Section 15</a>), whose
 bytes conformance testing compares exactly. A receiver cannot
-detect any of these from the wire bytes alone.<a href="#section-5-6" class="pilcrow">¶</a></p>
-<p id="section-5-7">The CMAF Header for a <code>locmaf</code> track is carried by the <strong>same</strong>
+detect any of these from the wire bytes alone.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<p id="section-5-6">The CMAF Header for a <code>locmaf</code> track is carried by the <strong>same</strong>
 mechanism <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> uses for a <code>cmaf</code> track: an <code>initDataList</code> entry
 referenced from the track entry by <code>initRef</code> (see <a href="#cmaf-header" class="auto internal xref">Section 6</a>).
 LOCMAF places no additional restriction on the <code>initDataList</code> entry
@@ -1769,8 +1749,8 @@ base64 type is the common case, but any <code>initDataList</code> type defined
 by <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> or <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> <span class="bcp14">MAY</span> be used. LOCMAF defines no init carriage
 of its own. A consequence is that a <code>cmaf</code> track and a <code>locmaf</code>
 track wrapping the same source <span class="bcp14">MAY</span> refer to the same <code>initData</code>
-entry; only the per-chunk Object encoding differs.<a href="#section-5-7" class="pilcrow">¶</a></p>
-<p id="section-5-8">DRM is signaled exactly as for a <code>cmaf</code> track, by the CMSF
+entry; only the per-chunk Object encoding differs.<a href="#section-5-6" class="pilcrow">¶</a></p>
+<p id="section-5-7">DRM is signaled exactly as for a <code>cmaf</code> track, by the CMSF
 <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> root-level <code>contentProtections</code> array referenced from the
 track entry by <code>contentProtectionRefIDs</code>, following the DASH-IF
 content-protection model <span>[<a href="#DASHIF-ECCP" class="cite xref">DASHIF-ECCP</a>]</span>. LOCMAF does <strong>not</strong> use the
@@ -1778,11 +1758,11 @@ MSF moq-secure-objects mechanism; the encryption metadata travels
 inside the reconstructed CMAF boxes (see <a href="#drm" class="auto internal xref">Section 13</a>). The precise
 catalog field names are those defined by <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> and <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span>;
 beyond the <code>packaging</code> value <code>"locmaf"</code> and its <code>version</code> key in
-<code>packagingMetadata</code>, LOCMAF introduces no catalog fields.<a href="#section-5-8" class="pilcrow">¶</a></p>
-<p id="section-5-9"><code>cmaf</code> and <code>locmaf</code> tracks <span class="bcp14">MAY</span> be mixed in the same catalog under the
+<code>packagingMetadata</code>, LOCMAF introduces no catalog fields.<a href="#section-5-7" class="pilcrow">¶</a></p>
+<p id="section-5-8"><code>cmaf</code> and <code>locmaf</code> tracks <span class="bcp14">MAY</span> be mixed in the same catalog under the
 same namespace — for example video using <code>cmaf</code> packaging while audio
 uses <code>locmaf</code> — and <span class="bcp14">MAY</span> coexist as alternative encodings of the same
-source.<a href="#section-5-9" class="pilcrow">¶</a></p>
+source.<a href="#section-5-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="cmaf-header">
@@ -1875,8 +1855,8 @@ renders before the <code>moof</code>, and the <code>mdat</code> immediately foll
 <code>locmafHeader</code> followed by <code>mdat</code>; <code>genBox</code> is purely additive.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 <p id="section-7.1-7">Each element begins with an <strong>element_type</strong> <code>vi64</code>. Four element
 types are defined:<a href="#section-7.1-7" class="pilcrow">¶</a></p>
-<table class="center" id="table-2">
-          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<table class="center" id="table-1">
+          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
             <tr>
               <th class="text-center" rowspan="1" colspan="1">element_type</th>
@@ -2388,8 +2368,8 @@ they encode in a single byte. The field IDs are identical across
 full and delta headers; only the value encoding differs (absolute in
 a full header, delta in a delta header — see <a href="#full-chunk" class="auto internal xref">Section 11</a> and
 <a href="#delta-chunk" class="auto internal xref">Section 12</a>).<a href="#section-10-3" class="pilcrow">¶</a></p>
-<table class="center" id="table-3">
-        <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-2">
+        <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -2843,8 +2823,8 @@ the previous chunk.<a href="#section-12-1" class="pilcrow">¶</a></p>
 <a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-field-value-encoding" class="section-name selfRef">Field value encoding</a>
         </h3>
 <p id="section-12.1-1">Each emitted field's value is interpreted relative to its kind:<a href="#section-12.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-4">
-          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<table class="center" id="table-3">
+          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Kind</th>
@@ -3077,8 +3057,8 @@ deployed DRM ecosystem <span>[<a href="#DASHIF-ECCP" class="cite xref">DASHIF-EC
         <h3 id="name-box-handling">
 <a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-box-handling" class="section-name selfRef">Box handling</a>
         </h3>
-<table class="center" id="table-5">
-          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Box</th>
@@ -3123,8 +3103,8 @@ deployed DRM ecosystem <span>[<a href="#DASHIF-ECCP" class="cite xref">DASHIF-EC
         </table>
 <p id="section-13.2-2">The following DRM boxes are not supported. Sources that require
 them <span class="bcp14">MUST</span> use plain CMAF packaging:<a href="#section-13.2-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-6">
-          <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<table class="center" id="table-5">
+          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Box</th>
@@ -3878,7 +3858,7 @@ against the structural rules for its type.<a href="#section-18-5" class="pilcrow
 <dd class="break"></dd>
 <dt id="CMSF">[CMSF]</dt>
         <dd>
-<span class="refAuthor">Law, W.</span>, <span class="refTitle">"CMSF- a CMAF compliant implementation of MOQT Streaming Format"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-cmsf-01</span>, <time datetime="2026-06-03" class="refDate">3 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-cmsf-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-cmsf-01</a>&gt;</span>. </dd>
+<span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
 <dd class="break"></dd>
 <dt id="ISOBMFF">[ISOBMFF]</dt>
         <dd>
