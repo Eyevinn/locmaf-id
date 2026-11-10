@@ -1822,6 +1822,56 @@ This document has no IANA actions.
 
 --- back
 
+# Change Log
+{:removeinrfc="true"}
+
+## Since draft-einarsson-moq-locmaf-01
+
+Changes that affect implementations:
+
+- The LOCMAF packaging version is now `0.4`.
+- Catalog: a `locmaf` track signals its LOCMAF version as the
+  `version` key of the MSF `packagingMetadata` track field
+  (`"packagingMetadata": "version=0.4"`), which replaces the
+  `locmafVersion` track field. {{CMSF}} now registers the
+  `"locmaf"` packaging value, so this document no longer defines it
+  ({{catalog}}).
+- New fields `mfhdSequenceNumber` (ID 18, full headers only) and
+  `mfhdSequenceNumberStep` (ID 20, delta headers only) carry the
+  `mfhd` `sequence_number`. A delta chunk derives it from the
+  previous chunk's value and a delta-coded step. The canonical
+  `mfhd` carries this effective value instead of 0
+  ({{seqnum-fields}}, {{seqnum-derivation}}).
+- Canonical `trun` version: a video track without an edit list
+  gets version 1 in every chunk, so a reconstructed video track no
+  longer mixes versions 0 and 1 ({{canonical-trun}}). The canonical
+  bytes of most video chunks therefore change.
+- A chunk with boxes between its `moof` and its `mdat` is carried
+  as a rawBoxes Object holding the whole chunk. A box after a
+  segment's last `mdat` is not carried; a box that covers the
+  segment goes before the `moof` of its last chunk ({{genbox}}).
+
+Clarifications:
+
+- A new field can be added within a version when a receiver that
+  ignores it still reconstructs decode-equivalent CMAF, even if the
+  canonical bytes differ ({{parity}}). The `version` key also
+  covers changes to the canonical reconstruction ({{catalog}}).
+- A genBox carries the boxes that precede the `moof`, rather than
+  all boxes outside it ({{genbox}}).
+
+Editorial:
+
+- New Related Work subsection on ROHC and the low-overhead image
+  file format of HEIF ({{related-work}}).
+- References updated to {{MOQT}} draft-23, {{MSF}} draft-02,
+  {{CMSF}} draft-02, {{LOC}} draft-05, ISO/IEC 14496-12:2026, and
+  ISO/IEC 23001-7:2023. The `vi64` definition is now cited from
+  {{Section 8.1 of MOQT}}, and the Datagram restriction uses the
+  MOQT term Delivery Mode.
+- Corrected the {{CMAF}} clause numbers cited for the CMAF fragment
+  and CMAF segment definitions.
+
 # Acknowledgments
 {:numbered="false"}
 
