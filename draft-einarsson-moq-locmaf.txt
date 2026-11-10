@@ -4,8 +4,8 @@
 
 Media Over QUIC                                             T. Einarsson
 Internet-Draft                                        Eyevinn Technology
-Intended status: Informational                           9 November 2026
-Expires: 13 May 2027
+Intended status: Informational                          10 November 2026
+Expires: 14 May 2027
 
 
              Low Overhead CMAF for Media over QUIC (LOCMAF)
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 May 2027.
+   This Internet-Draft will expire on 14 May 2027.
 
 Copyright Notice
 
@@ -732,9 +732,9 @@ Table of Contents
 
 8.  Generic Boxes (genBox)
 
-   A genBox is the single generic carrier for every box that sits
-   outside the moof in a CMAF chunk — styp, prft, emsg, uuid, and any
-   other ISO box type.  One genBox element carries exactly one ISO box.
+   A genBox is the single generic carrier for every box that precedes
+   the moof in a CMAF chunk — styp, prft, emsg, uuid, and any other ISO
+   box type.  One genBox element carries exactly one ISO box.
 
    Boxes _inside_ moof.traf are not genBoxes.  In particular the CENC
    boxes senc, saiz, and saio live inside traf, so their data is carried
@@ -808,6 +808,16 @@ Table of Contents
    the moof; the mdat immediately follows the moof.  The reconstructed
    chunk is genBox* (in payload order), then moof, then mdat.
 
+   A chunk with boxes between its moof and its mdat does not fit this
+   shape.  Such boxes are outside the CMAF chunk structure, but ISO BMFF
+   allows them, since data_offset can skip them.  A publisher MUST carry
+   such a chunk as a rawBoxes Object (Section 9) holding the whole
+   chunk, including any boxes before its moof.  It MUST NOT move the
+   boxes before the moof as genBoxes: that would change the chunk's
+   bytes and its data_offset, and give one chunk two encodings for
+   canonical comparison (Section 15).  As after any rawBoxes Object, the
+   next moof-carrying Object of the group is a full header.
+
    A box after the last mdat of a CMAF segment precedes no moof in the
    group, so no genBox can carry it, and LOCMAF does not carry it.  CMAF
    describes such boxes only before a chunk, and a box between one
@@ -822,7 +832,7 @@ Table of Contents
    [ISOBMFF] (or the specification owning the box type), carried
    verbatim — LOCMAF re-encodes no fields.
 
-   The set of box types carried as genBoxes is open: any box outside the
+   The set of box types carried as genBoxes is open: any box before the
    moof is carried under its ISO box_name FourCC, which is self-
    describing and needs no LOCMAF identifier allocation.
 
@@ -841,7 +851,8 @@ Table of Contents
       round-trip exactly.
 
    *  *Verbatim chunk carriage.* A chunk whose moof uses structures
-      outside the LOCMAF field model rides verbatim, at plain-CMAF cost,
+      outside the LOCMAF field model, or that has boxes between its moof
+      and its mdat (Section 8), rides verbatim, at plain-CMAF cost,
       without forcing the whole track onto plain CMAF packaging.
 
 9.1.  Byte layout
