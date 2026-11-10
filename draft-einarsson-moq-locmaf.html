@@ -1745,8 +1745,8 @@ the track's packaging value. This document defines one key for the
 <code>"locmaf"</code> packaging value, <code>version</code>, which holds the track's LOCMAF
 packaging version.<a href="#section-5-4" class="pilcrow">¶</a></p>
 <p id="section-5-5">A <code>locmaf</code> track <span class="bcp14">MUST</span> carry <code>packagingMetadata</code> with a <code>version</code>
-key. The version specified by this document is <code>0.3</code>, so the track
-entry carries <code>"packagingMetadata": "version=0.3"</code>. A receiver <span class="bcp14">MUST NOT</span> subscribe to a LOCMAF track whose <code>version</code> it does not support,
+key. The version specified by this document is <code>0.4</code>, so the track
+entry carries <code>"packagingMetadata": "version=0.4"</code>. A receiver <span class="bcp14">MUST NOT</span> subscribe to a LOCMAF track whose <code>version</code> it does not support,
 or whose <code>packagingMetadata</code> has no <code>version</code> key; when the catalog
 offers the same source under an alternative packaging, it <span class="bcp14">MAY</span> select
 that instead. As <span>[<a href="#MSF" class="cite xref">MSF</a>]</span> requires, a receiver ignores any key not
@@ -1756,8 +1756,10 @@ this document can add keys.<a href="#section-5-5" class="pilcrow">¶</a></p>
 within a version: fields a receiver can ignore and still
 reconstruct decode-equivalent CMAF. The <code>version</code> key signals
 changes a receiver cannot ignore: new fields needed for decoding,
-and behavioral changes that reinterpret existing wire syntax. A
-receiver cannot detect either from the wire bytes alone.<a href="#section-5-6" class="pilcrow">¶</a></p>
+behavioral changes that reinterpret existing wire syntax, and
+changes to the canonical reconstruction (<a href="#canonical" class="auto internal xref">Section 15</a>), whose
+bytes conformance testing compares exactly. A receiver cannot
+detect any of these from the wire bytes alone.<a href="#section-5-6" class="pilcrow">¶</a></p>
 <p id="section-5-7">The CMAF Header for a <code>locmaf</code> track is carried by the <strong>same</strong>
 mechanism <span>[<a href="#CMSF" class="cite xref">CMSF</a>]</span> uses for a <code>cmaf</code> track: an <code>initDataList</code> entry
 referenced from the track entry by <code>initRef</code> (see <a href="#cmaf-header" class="auto internal xref">Section 6</a>).
@@ -3279,7 +3281,8 @@ consumed by all preceding elements.<a href="#section-15.1-2.4.1" class="pilcrow"
 frame interface consumes directly (<a href="#consumption" class="auto internal xref">Section 16</a>), and the only
 chunk-derived input to the canonical reconstruction below. The
 remaining inputs come from the CMAF Header <code>moov</code>: the single
-<code>trak</code>'s <code>track_ID</code>, the <code>trex</code> defaults, <code>mdhd.timescale</code>, and
+<code>trak</code>'s <code>track_ID</code>, its <code>hdlr</code> handler type and whether it has an
+EditListBox (<code>elst</code>), the <code>trex</code> defaults, <code>mdhd.timescale</code>, and
 (when CENC is in use) the <code>tenc</code> defaults.<a href="#section-15.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3385,36 +3388,71 @@ extra bytes exist only in the reconstructed chunk, not on the wire.<a href="#sec
 <a href="#section-15.6" class="section-number selfRef">15.6. </a><a href="#name-trun" class="section-name selfRef">trun</a>
         </h3>
 <p id="section-15.6-1"><code>trun.version = 1</code> iff any effective composition-time offset is
-negative, otherwise <code>0</code>.<a href="#section-15.6-1" class="pilcrow">¶</a></p>
-<p id="section-15.6-2">The canonical <code>tr_flags</code>, set and emitted in this order:<a href="#section-15.6-2" class="pilcrow">¶</a></p>
+negative, or the track is a video track (<code>hdlr</code> handler type
+<code>vide</code>) whose CMAF Header has no EditListBox (<code>elst</code>). Otherwise
+the version is 0.<a href="#section-15.6-1" class="pilcrow">¶</a></p>
+<p id="section-15.6-2">The version follows the track, not the individual chunk.
+<span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §9.2.5 gives a video track two ways to make each
+fragment's earliest presentation time equal its
+<code>baseMediaDecodeTime</code>, and a track uses one of them, not both:
+version 1 TrackRunBoxes whose composition-time offsets, negative
+where needed, achieve this (see also <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §7.5.17); or an
+offset edit list in the CMAF Header with version 0 TrackRunBoxes.
+A rule based only on the chunk's offsets would mix the two forms
+in one track: a chunk without B-frames, or a short chunk whose
+offsets are all non-negative, would get version 0 between version 1
+chunks and fit neither form. Hence:<a href="#section-15.6-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15.6-3.1">
-            <p id="section-15.6-3.1.1"><code>data-offset-present</code> (<code>0x000001</code>) — always set;<a href="#section-15.6-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-15.6-3.1.1">a video track without an edit list gets version 1 in every chunk,
+including chunks whose offsets are all zero;<a href="#section-15.6-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-15.6-3.2">
-            <p id="section-15.6-3.2.1"><code>first-sample-flags-present</code> (<code>0x000004</code>) — set iff <code>n &gt; 1</code> and
-the first sample's effective flags differ from the (equal)
-effective flags of all other samples;<a href="#section-15.6-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-15.6-3.2.1">a video track with an edit list gets version 0. A chunk with a
+negative offset still gets version 1, since version 0 cannot
+carry one; such a source does not conform to <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §9.2.5,
+but its timing is preserved;<a href="#section-15.6-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-15.6-3.3">
-            <p id="section-15.6-3.3.1"><code>sample-duration-present</code> (<code>0x000100</code>) — set iff the effective
-durations are not all equal;<a href="#section-15.6-3.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-15.6-3.4">
-            <p id="section-15.6-3.4.1"><code>sample-size-present</code> (<code>0x000200</code>) — set iff per-sample sizes are
-used (see <a href="#canonical-sizes" class="auto internal xref">Section 15.6.1</a>);<a href="#section-15.6-3.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-15.6-3.5">
-            <p id="section-15.6-3.5.1"><code>sample-flags-present</code> (<code>0x000400</code>) — set iff the effective flags
-are neither all equal nor covered by the first-sample-flags case
-above;<a href="#section-15.6-3.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-15.6-3.6">
-            <p id="section-15.6-3.6.1"><code>sample-composition-time-offsets-present</code> (<code>0x000800</code>) — set iff
-any effective composition-time offset ≠ 0.<a href="#section-15.6-3.6.1" class="pilcrow">¶</a></p>
+            <p id="section-15.6-3.3.1">any other track (audio, subtitles, metadata) gets version 1 only
+in a chunk with a negative offset.<a href="#section-15.6-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-15.6-4">The <code>trun</code> field layout is <code>sample_count</code>, then <code>data_offset</code>, then
+<p id="section-15.6-4">Only the presence of an EditListBox matters, not its entries: in a
+CMAF Header, <span>[<a href="#CMAF" class="cite xref">CMAF</a>]</span> §7.5.13 allows only an offset edit list, with
+a single entry that shifts the timeline. The choice changes only
+the version byte of the canonical <code>trun</code>, not the timing: an
+effective composition-time offset is a signed 32-bit value, and a
+non-negative offset has the same meaning in both versions.<a href="#section-15.6-4" class="pilcrow">¶</a></p>
+<p id="section-15.6-5">The canonical <code>tr_flags</code>, set and emitted in this order:<a href="#section-15.6-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-15.6-6.1">
+            <p id="section-15.6-6.1.1"><code>data-offset-present</code> (<code>0x000001</code>) — always set;<a href="#section-15.6-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.6-6.2">
+            <p id="section-15.6-6.2.1"><code>first-sample-flags-present</code> (<code>0x000004</code>) — set iff <code>n &gt; 1</code> and
+the first sample's effective flags differ from the (equal)
+effective flags of all other samples;<a href="#section-15.6-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.6-6.3">
+            <p id="section-15.6-6.3.1"><code>sample-duration-present</code> (<code>0x000100</code>) — set iff the effective
+durations are not all equal;<a href="#section-15.6-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.6-6.4">
+            <p id="section-15.6-6.4.1"><code>sample-size-present</code> (<code>0x000200</code>) — set iff per-sample sizes are
+used (see <a href="#canonical-sizes" class="auto internal xref">Section 15.6.1</a>);<a href="#section-15.6-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.6-6.5">
+            <p id="section-15.6-6.5.1"><code>sample-flags-present</code> (<code>0x000400</code>) — set iff the effective flags
+are neither all equal nor covered by the first-sample-flags case
+above;<a href="#section-15.6-6.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.6-6.6">
+            <p id="section-15.6-6.6.1"><code>sample-composition-time-offsets-present</code> (<code>0x000800</code>) — set iff
+any effective composition-time offset ≠ 0.<a href="#section-15.6-6.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-15.6-7">The <code>trun</code> field layout is <code>sample_count</code>, then <code>data_offset</code>, then
 (if <code>first-sample-flags-present</code>) <code>first_sample_flags</code> (the effective
 flags of the first sample), then the per-sample records populated
 from the effective vectors, each carrying its present fields in ISO
@@ -3423,11 +3461,11 @@ order:
 <code>sample_composition_time_offset</code>. When <code>trun.version == 1</code> the
 composition-time offset is a signed 32-bit value; when
 <code>trun.version == 0</code> it is unsigned (reached only when every offset
-is ≥ 0).<a href="#section-15.6-4" class="pilcrow">¶</a></p>
-<p id="section-15.6-5">When <code>n == 0</code> (an event-only chunk, <a href="#event-only" class="auto internal xref">Section 14</a>) there are no
+is ≥ 0).<a href="#section-15.6-7" class="pilcrow">¶</a></p>
+<p id="section-15.6-8">When <code>n == 0</code> (an event-only chunk, <a href="#event-only" class="auto internal xref">Section 14</a>) there are no
 effective per-sample values: every conditional <code>tr_flags</code> bit above
 is clear, no per-sample records are emitted, and no optional <code>tfhd</code>
-default is present (<a href="#canonical-tfhd" class="auto internal xref">Section 15.4</a>).<a href="#section-15.6-5" class="pilcrow">¶</a></p>
+default is present (<a href="#canonical-tfhd" class="auto internal xref">Section 15.4</a>).<a href="#section-15.6-8" class="pilcrow">¶</a></p>
 <div id="canonical-sizes">
 <section id="section-15.6.1">
           <h4 id="name-canonical-sample-size-layou">
