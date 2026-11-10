@@ -344,8 +344,8 @@ the track's packaging value. This document defines one key for the
 packaging version.
 
 A `locmaf` track MUST carry `packagingMetadata` with a `version`
-key. The version specified by this document is `0.3`, so the track
-entry carries `"packagingMetadata": "version=0.3"`. A receiver MUST
+key. The version specified by this document is `0.4`, so the track
+entry carries `"packagingMetadata": "version=0.4"`. A receiver MUST
 NOT subscribe to a LOCMAF track whose `version` it does not support,
 or whose `packagingMetadata` has no `version` key; when the catalog
 offers the same source under an alternative packaging, it MAY select
@@ -357,8 +357,10 @@ The unknown-field rule of {{parity}} covers additive evolution
 within a version: fields a receiver can ignore and still
 reconstruct decode-equivalent CMAF. The `version` key signals
 changes a receiver cannot ignore: new fields needed for decoding,
-and behavioral changes that reinterpret existing wire syntax. A
-receiver cannot detect either from the wire bytes alone.
+behavioral changes that reinterpret existing wire syntax, and
+changes to the canonical reconstruction ({{canonical}}), whose
+bytes conformance testing compares exactly. A receiver cannot
+detect any of these from the wire bytes alone.
 
 The CMAF Header for a `locmaf` track is carried by the **same**
 mechanism {{CMSF}} uses for a `cmaf` track: an `initDataList` entry
@@ -1381,7 +1383,8 @@ The effective values are the chunk's meaning: they are what a
 frame interface consumes directly ({{consumption}}), and the only
 chunk-derived input to the canonical reconstruction below. The
 remaining inputs come from the CMAF Header `moov`: the single
-`trak`'s `track_ID`, the `trex` defaults, `mdhd.timescale`, and
+`trak`'s `track_ID`, its `hdlr` handler type and whether it has an
+EditListBox (`elst`), the `trex` defaults, `mdhd.timescale`, and
 (when CENC is in use) the `tenc` defaults.
 
 ## Chunk box order
@@ -1449,7 +1452,37 @@ extra bytes exist only in the reconstructed chunk, not on the wire.
 ## trun {#canonical-trun}
 
 `trun.version = 1` iff any effective composition-time offset is
-negative, otherwise `0`.
+negative, or the track is a video track (`hdlr` handler type
+`vide`) whose CMAF Header has no EditListBox (`elst`). Otherwise
+the version is 0.
+
+The version follows the track, not the individual chunk.
+{{CMAF}} §9.2.5 gives a video track two ways to make each
+fragment's earliest presentation time equal its
+`baseMediaDecodeTime`, and a track uses one of them, not both:
+version 1 TrackRunBoxes whose composition-time offsets, negative
+where needed, achieve this (see also {{CMAF}} §7.5.17); or an
+offset edit list in the CMAF Header with version 0 TrackRunBoxes.
+A rule based only on the chunk's offsets would mix the two forms
+in one track: a chunk without B-frames, or a short chunk whose
+offsets are all non-negative, would get version 0 between version 1
+chunks and fit neither form. Hence:
+
+- a video track without an edit list gets version 1 in every chunk,
+  including chunks whose offsets are all zero;
+- a video track with an edit list gets version 0. A chunk with a
+  negative offset still gets version 1, since version 0 cannot
+  carry one; such a source does not conform to {{CMAF}} §9.2.5,
+  but its timing is preserved;
+- any other track (audio, subtitles, metadata) gets version 1 only
+  in a chunk with a negative offset.
+
+Only the presence of an EditListBox matters, not its entries: in a
+CMAF Header, {{CMAF}} §7.5.13 allows only an offset edit list, with
+a single entry that shifts the timeline. The choice changes only
+the version byte of the canonical `trun`, not the timing: an
+effective composition-time offset is a signed 32-bit value, and a
+non-negative offset has the same meaning in both versions.
 
 The canonical `tr_flags`, set and emitted in this order:
 
